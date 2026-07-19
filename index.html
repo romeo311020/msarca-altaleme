@@ -948,45 +948,7 @@
             document.getElementById('generatedKeyDisplay').innerText = token;
         }
         function initKeyboardSecurity() { document.onkeydown = function(e) { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'C'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) return false; }; }
-<div class="lock-overlay" id="authOverlay">
-    <div class="lock-card">
-        <i class="fa-solid fa-shield-halved main-icon"></i>
-        <h2>جدار حماية مسارك السحابي</h2>
-        <p>يرجى إدخال رقم هاتف الطالب المسجل متبوعاً بكود الاشتراك الخاص بجهازك لفتح المنصة.</p>
-        
-        <div class="input-group">
-            <label><i class="fa-solid fa-phone"></i> رقم هاتف الطالب:</label>
-            <input type="tel" id="studentPhone" class="form-control" placeholder="مثال: 01027675035">
-        </div>
 
-        <div class="input-group">
-            <label><i class="fa-solid fa-key"></i> كود التفعيل والاشتراك:</label>
-            <input type="password" id="studentCode" class="form-control" placeholder="XXXXXX">
-        </div>
-
-        <button class="btn btn-primary" onclick="validateStudentAccess()"><i class="fa-solid fa-unlock"></i> فحص صلاحية الدخول الآمن</button>
-    </div>
-</div>
-
-<div class="container" style="margin-top: 40px;">
-    <h2 style="margin-bottom: 25px; font-weight: 700;">
-        <i class="fa-solid fa-graduation-cap" style="color:var(--primary)"></i> أعضاء هيئة التدريس المتاحين:
-    </h2>
-    
-    <div id="teachers-list">
-        </div>
-</div>
-
-<div class="video-modal" id="videoModal">
-    <div class="video-container-box">
-        <div class="video-modal-header">
-            <h3 id="modalVideoTitle" style="font-weight:700;">تشغيل البث التعريفي المحمي</h3>
-            <button class="close-video-btn" onclick="closeUniversalPlayer()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="video-wrapper" id="videoWrapperContainer">
-            </div>
-    </div>
-</div>
     </script>
 </body>
 </html>
