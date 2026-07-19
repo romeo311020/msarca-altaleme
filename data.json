@@ -1,0 +1,20 @@
+{
+  "teachers": [
+    {
+      "id": 1,
+      "name": "مستر محمد صلاح",
+      "subject": "اللغة العربية",
+      "img": "https://i.postimg.cc/25K4nGbj/images-(10).jpg",
+      "desc": "شرح فصيح لكافة فروع اللغة العربية."
+    }
+  ],
+  "videos": [
+    {
+      "id": 101,
+      "teacherName": "مستر محمد صلاح",
+      "title": "المحاضرة الأولى التأسيسية",
+      "desc": "شرح أساسيات المنهج المطور",
+      "stream": "https://www.youtube.com/embed/-6CSooIL9Lw"
+    }
+  ]
+}
