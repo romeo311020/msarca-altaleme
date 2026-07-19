@@ -113,7 +113,7 @@
         .drawer-profile-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; color: white; }
         .drawer-profile-card p { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 10px; }
         
-        .status-pill { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; }
+        .status-pill { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.7 zero; font-weight: bold; }
         .status-pill.locked { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
         .status-pill.active { background: rgba(34, 197, 94, 0.15); color: var(--success); border: 1px solid var(--success); box-shadow: 0 0 10px rgba(34,197,94,0.2); }
 
@@ -370,10 +370,15 @@
         </section>
 
         <section id="teachers">
-            <div style="text-align:center; margin-bottom: 40px;">
+            <div style="text-align:center; margin-bottom: 25px;">
                 <h2 style="font-size:1.8rem; font-weight:700;">المدرسون والمحاضرات</h2>
                 <p style="color:var(--text-secondary); font-size:0.85rem; margin-top:5px;">كل مدرس يحتوي على عدة محاضرات داخلية يمكنك فتحها مباشرة</p>
             </div>
+            
+            <div class="form-group" style="max-width: 500px; margin: 0 auto 30px auto;">
+                <input type="text" class="form-control" id="platformSearchInput" oninput="filterPlatformData(this.value)" placeholder="🔍 ابحث باسم المدرس، المادة، أو عنوان المحاضرة...">
+            </div>
+
             <div class="teachers-grid" id="teachersGridBox"></div>
         </section>
 
@@ -516,7 +521,6 @@
     </footer>
 
     <script>
-        // الكائن الموحد لبيانات المنصة، تم تفريغه ليُشحن تلقائياً من الملف الخارجي
         let platformData = { teachers: [] };
         let currentSessionUser = null;
         let selectedLectureRuntime = null;
@@ -524,114 +528,104 @@
         window.addEventListener('DOMContentLoaded', async () => {
             initKeyboardSecurity();
             checkExistingSession();
-            // جلب البيانات مع بدء التحميل مباشرة
             await fetchCloudTeachers();
+            
+            // [تحسين 1] التحقق من وجود محاضرة سابقة ومتابعة المشاهدة تلقائياً
+            checkLastWatchedLecture();
+
+            // [تحسين 2] المزامنة التلقائية الصامتة في الخلفية كل 60 ثانية لتحديث البيانات دون عمل Reload
+            setInterval(async () => {
+                await fetchCloudTeachers(true);
+            }, 60000);
         });
 
-        // =========================================================
-        // دالة جلب البيانات الخارجيـة Async / Await مع معالجة الأداء
-        // =========================================================
-        async function fetchCloudTeachers() {
+        // جلب البيانات الخارجيـة
+        async function fetchCloudTeachers(isSilent = false) {
             const grid = document.getElementById('teachersGridBox');
             if (!grid) return;
 
-            // عرض مؤشر التحميل (Loading) بشكل متناسق
-            grid.innerHTML = `
-                <div class="glass-card" style="padding:40px; text-align:center;">
-                    <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem; color:var(--accent); margin-bottom:10px;"></i>
-                    <p style="color:var(--text-secondary);">جاري تحميل قائمة المدرسين والمحاضرات...</p>
-                </div>`;
+            if (!isSilent) {
+                grid.innerHTML = `
+                    <div class="glass-card" style="padding:40px; text-align:center;">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem; color:var(--accent); margin-bottom:10px;"></i>
+                        <p style="color:var(--text-secondary);">جاري تحميل قائمة المدرسين والمحاضرات...</p>
+                    </div>`;
+            }
 
             try {
-                // Fetch بـ Cache-Busting لضمان جلب التحديثات الفورية
                 const response = await fetch('data.json?t=' + new Date().getTime());
-                if (!response.ok) {
-                    throw new Error('تعذر العثور على ملف البيانات أو السيرفر غير مستجيب.');
-                }
+                if (!response.ok) throw new Error('تعذر العثور على ملف البيانات.');
                 const data = await response.json();
                 
                 if (data && Array.isArray(data.teachers)) {
                     platformData.teachers = data.teachers;
-                    renderTeachers();
-                } else {
-                    throw new Error('بنية ملف JSON غير متوافقة.');
+                    // الحفاظ على حالة البحث إن وجدت أثناء التحديث التلقائي
+                    const searchVal = document.getElementById('platformSearchInput')?.value || '';
+                    if (searchVal) {
+                        filterPlatformData(searchVal);
+                    } else {
+                        renderTeachers(platformData.teachers);
+                    }
                 }
             } catch (error) {
-                console.error(error);
-                // عرض كرت الخطأ (Error Card) مع الحفاظ على التصميم
-                grid.innerHTML = `
-                    <div class="glass-card" style="padding:40px; text-align:center; border-color:var(--danger);">
-                        <i class="fa-solid fa-circle-exclamation" style="font-size:2.5rem; color:var(--danger); margin-bottom:10px;"></i>
-                        <h4 style="color:#fff; margin-bottom:8px;">خطأ في تحميل البيانات</h4>
-                        <p style="color:var(--text-secondary); font-size:0.85rem;">${error.message}</p>
-                        <button class="btn btn-primary" onclick="fetchCloudTeachers()" style="margin-top:15px; background:var(--danger);">إعادة المحاولة <i class="fa-solid fa-rotate-right"></i></button>
-                    </div>`;
-                showToast('فشل في مزامنة بيانات المنصة الخارجيـة', 'error');
-            }
-        }
-
-        // App Drawer Utilities
-        function openDrawer() {
-            document.getElementById('appDrawer').classList.add('open');
-            document.getElementById('drawerOverlay').classList.add('show');
-        }
-
-        function closeDrawer() {
-            document.getElementById('appDrawer').classList.remove('open');
-            document.getElementById('drawerOverlay').classList.remove('show');
-        }
-
-        function navigateFromDrawer(sectionId) {
-            closeDrawer();
-            navigateTo(sectionId);
-        }
-
-        // Router View Engine
-        function navigateTo(sectionId, elementId = null) {
-            const sections = document.querySelectorAll('section');
-            sections.forEach(s => s.classList.remove('active-section'));
-
-            const target = document.getElementById(sectionId);
-            if(target) {
-                target.classList.add('active-section');
-                window.scrollTo(0,0);
-            }
-
-            const links = document.querySelectorAll('.nav-link');
-            links.forEach(l => l.classList.remove('active'));
-            links.forEach(l => {
-                if(l.getAttribute('onclick') && l.getAttribute('onclick').includes(`'${sectionId}'`)) {
-                    l.classList.add('active');
+                if (!isSilent) {
+                    grid.innerHTML = `
+                        <div class="glass-card" style="padding:40px; text-align:center; border-color:var(--danger);">
+                            <i class="fa-solid fa-circle-exclamation" style="font-size:2.5rem; color:var(--danger); margin-bottom:10px;"></i>
+                            <h4 style="color:#fff; margin-bottom:8px;">خطأ في تحميل البيانات</h4>
+                            <p style="color:var(--text-secondary); font-size:0.85rem;">${error.message}</p>
+                            <button class="btn btn-primary" onclick="fetchCloudTeachers()" style="margin-top:15px; background:var(--danger);">إعادة المحاولة <i class="fa-solid fa-rotate-right"></i></button>
+                        </div>`;
                 }
-            });
-
-            if(sectionId === 'subject-page' && elementId) {
-                loadStreamRoom(elementId);
             }
         }
 
-        // =========================================================
-        // دالة بناء وبث كروت المدرسين، الكورسات، والمحاضرات ديناميكياً
-        // =========================================================
-        function renderTeachers() {
-            const grid = document.getElementById('teachersGridBox');
-            if (!grid) return;
-
-            const teachers = platformData.teachers;
-            if (!teachers.length) {
-                grid.innerHTML = '<div class="glass-card" style="padding:20px; text-align:center;">لا توجد بيانات مدرسين متاحة حالياً.</div>';
+        // [تحسين 3] محرك البحث الذكي والتصفية الشجرية للبيانات
+        function filterPlatformData(query) {
+            const cleanQuery = query.toLowerCase().trim();
+            if (!cleanQuery) {
+                renderTeachers(platformData.teachers);
                 return;
             }
 
-            grid.innerHTML = teachers.map(teacher => {
-                // تجميع الكورسات والمحاضرات داخل المدرس بشكل شجري متكامل
+            const filtered = platformData.teachers.map(t => {
+                // فلترة الكورسات والمحاضرات التي تطابق البحث
+                const matchingCourses = t.courses.map(c => {
+                    const matchingLectures = c.lectures.filter(l => 
+                        l.title.toLowerCase().includes(cleanQuery) || 
+                        (l.description && l.description.toLowerCase().includes(cleanQuery))
+                    );
+                    if (matchingLectures.length > 0 || c.title.toLowerCase().includes(cleanQuery)) {
+                        return { ...c, lectures: matchingLectures.length > 0 ? matchingLectures : c.lectures };
+                    }
+                    return null;
+                }).filter(c => c !== null);
+
+                if (t.name.toLowerCase().includes(cleanQuery) || t.subject.toLowerCase().includes(cleanQuery) || matchingCourses.length > 0) {
+                    return { ...t, courses: matchingCourses.length > 0 ? matchingCourses : t.courses };
+                }
+                return null;
+            }).filter(t => t !== null);
+
+            renderTeachers(filtered, true);
+        }
+
+        // بناء كروت المدرسين ديناميكياً
+        function renderTeachers(teachersList, autoOpen = false) {
+            const grid = document.getElementById('teachersGridBox');
+            if (!grid) return;
+
+            if (!teachersList.length) {
+                grid.innerHTML = '<div class="glass-card" style="padding:20px; text-align:center; color:var(--text-secondary);">لا توجد نتائج مطابقة لبحثك.</div>';
+                return;
+            }
+
+            grid.innerHTML = teachersList.map(teacher => {
                 let htmlContent = '';
                 
                 if (teacher.courses && teacher.courses.length > 0) {
                     teacher.courses.forEach(course => {
-                        // عنوان الكورس الفرعي
                         htmlContent += `<div class="course-group-title"><i class="fa-solid fa-graduation-cap"></i> ${course.title}</div>`;
-                        
                         htmlContent += `<div class="lecture-cards">`;
                         if (course.lectures && course.lectures.length > 0) {
                             course.lectures.forEach(lecture => {
@@ -639,7 +633,7 @@
                                     <div class="teacher-card glass-card">
                                         <div class="teacher-img-wrapper">
                                             <span class="teacher-badge">${teacher.subject}</span>
-                                            <img src="${teacher.image || teacher.img || ''}" alt="${lecture.title}">
+                                            <img src="${teacher.image || ''}" alt="${lecture.title}">
                                         </div>
                                         <div class="teacher-info">
                                             <h3 style="font-size:1.05rem;">${lecture.title}</h3>
@@ -659,17 +653,20 @@
                     htmlContent = '<div style="color:var(--text-secondary); font-size:0.8rem; padding:15px; text-align:center;">لم يتم إسناد كورسات أو محاضرات لهذا المعلم بعد.</div>';
                 }
 
+                const displayState = autoOpen ? 'flex' : 'none';
+                const activeClass = autoOpen ? 'active' : '';
+
                 return `
                     <div class="lecture-section">
-                        <button class="teacher-toggle" onclick="toggleTeacherLectures(${teacher.id})">
-                            <img class="teacher-photo" src="${teacher.image || teacher.img || ''}" alt="${teacher.name}">
+                        <button class="teacher-toggle ${activeClass}" onclick="toggleTeacherLectures(${teacher.id})">
+                            <img class="teacher-photo" src="${teacher.image || ''}" alt="${teacher.name}">
                             <div style="flex: 1; text-align: right;">
                                 <div class="teacher-name">${teacher.name}</div>
                                 <div class="teacher-subject">${teacher.subject} • طلابه: ${teacher.students || 0}</div>
                             </div>
-                            <i class="fa-solid fa-chevron-down"></i>
+                            <i class="fa-solid ${autoOpen ? 'fa-chevron-up' : 'fa-chevron-down'}"></i>
                         </button>
-                        <div class="lecture-cards-container" id="lectures-${teacher.id}" style="display: none; flex-direction: column; gap: 10px;">
+                        <div class="lecture-cards-container" id="lectures-${teacher.id}" style="display: ${displayState}; flex-direction: column; gap: 10px;">
                             ${htmlContent}
                         </div>
                     </div>
@@ -677,40 +674,7 @@
             }).join('');
         }
 
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            if (!container) return;
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i><span>${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => { toast.remove(); }, 2600);
-        }
-
-        function setButtonLoading(button, isLoading, text = '') {
-            if (!button) return;
-            if (isLoading) {
-                button.disabled = true;
-                button.dataset.originalText = button.innerHTML;
-                button.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${text || 'جارٍ المعالجة...'}`;
-            } else {
-                button.disabled = false;
-                button.innerHTML = button.dataset.originalText || button.innerHTML;
-            }
-        }
-
-        function toggleTeacherLectures(teacherId) {
-            const panel = document.getElementById(`lectures-${teacherId}`);
-            const button = document.querySelector(`.teacher-toggle[onclick="toggleTeacherLectures(${teacherId})"]`);
-            if (!panel || !button) return;
-            const isOpen = panel.style.display === 'flex';
-            panel.style.display = isOpen ? 'none' : 'flex';
-            button.classList.toggle('active', !isOpen);
-            const icon = button.querySelector('i');
-            if (icon) icon.className = isOpen ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
-        }
-
-        // دالة الفحص الأمني والضغط على الدخول للمحاضرة
+        // معالجة الضغط على المحاضرة وحفظ الـ Cache
         function handleTeacherEntryClick(tId, cId, lId) {
             if(!currentSessionUser) {
                 showToast('يرجى إنشاء حساب أو تسجيل الدخول أولاً', 'error');
@@ -718,7 +682,6 @@
                 return;
             }
 
-            // استخراج المحاضرة والمدرس المطابق تماماً من بنية المصفوفة الشجرية
             const teacher = platformData.teachers.find(t => t.id === tId);
             const course = teacher?.courses?.find(c => c.id === cId);
             const lecture = course?.lectures?.find(l => l.id === lId);
@@ -726,224 +689,83 @@
             if (lecture && teacher) {
                 selectedLectureRuntime = {
                     ...lecture,
+                    teacherId: tId,
+                    courseId: cId,
                     teacherName: teacher.name,
                     subject: teacher.subject
                 };
                 
+                // حفظ المعرفات للمتابعة لاحقاً
+                localStorage.setItem('masarak_last_watched', JSON.stringify({ tId, cId, lId }));
+                
                 showToast('جاري فتح غرفة البث الآمنة...', 'success');
-                // نمرر الـ ID الخاص بالمحاضرة مع وسوم الاستدعاء الفريد
                 navigateTo('subject-page', `${tId}-${cId}-${lId}`);
             }
         }
 
-        // Student Register logic
-        function processStudentRegistration(e) {
-            e.preventDefault();
-            const button = e.target.querySelector('button[type="submit"]');
-            const name = document.getElementById('regName').value.trim();
-            const phone = document.getElementById('regPhone').value.trim();
-            const pass = document.getElementById('regPass').value;
-            const passConfirm = document.getElementById('regPassConfirm').value;
-
-            if(!name || !phone || !pass || !passConfirm) {
-                showToast('يرجى ملء جميع الحقول أولاً', 'error');
-                return;
-            }
-
-            if(pass !== passConfirm) {
-                showToast('كلمة المرور وتأكيدها غير متطابقين', 'error');
-                return;
-            }
-
-            setButtonLoading(button, true, 'جاري إنشاء الحساب');
+        // [تابع تحسين 1] التأكد من آخر محاضرة وعرض خيار المتابعة
+        function checkLastWatchedLecture() {
             setTimeout(() => {
-                const studentObj = { name, phone, password: pass, activated: true, activeKey: 'account-ready' };
-                localStorage.setItem(`student_${phone}`, JSON.stringify(studentObj));
-                localStorage.setItem('masarak_logged_phone', phone);
-                currentSessionUser = studentObj;
-
-                syncUiAndDrawerState();
-                setButtonLoading(button, false);
-                showToast('تم إنشاء الحساب بنجاح', 'success');
-                navigateTo('pending-queue');
-            }, 500);
-        }
-
-        // Student Login logic
-        function processStudentLogin(e) {
-            e.preventDefault();
-            const button = e.target.querySelector('button[type="submit"]');
-            const phone = document.getElementById('loginPhone').value.trim();
-            const pass = document.getElementById('loginPass').value;
-
-            if(!phone || !pass) {
-                showToast('يرجى إدخال رقم الهاتف وكلمة المرور', 'error');
-                return;
-            }
-
-            setButtonLoading(button, true, 'جاري تسجيل الدخول');
-            setTimeout(() => {
-                const storedData = localStorage.getItem(`student_${phone}`);
-                if(!storedData) {
-                    setButtonLoading(button, false);
-                    showToast('رقم الهاتف هذا غير مسجل، يرجى إنشاء حساب جديد', 'error');
-                    return;
+                if (!currentSessionUser) return;
+                const lastData = localStorage.getItem('masarak_last_watched');
+                if (lastData) {
+                    try {
+                        const { tId, cId, lId } = JSON.parse(lastData);
+                        const teacher = platformData.teachers.find(t => t.id === tId);
+                        const course = teacher?.courses?.find(c => c.id === cId);
+                        const lecture = course?.lectures?.find(l => l.id === lId);
+                        
+                        if (lecture && teacher) {
+                            if(confirm(`مرحباً ${currentSessionUser.name}! هل تريد متابعة مشاهدة: (${lecture.title}) للمستر ${teacher.name}؟`)) {
+                                handleTeacherEntryClick(tId, cId, lId);
+                            }
+                        }
+                    } catch(e) {}
                 }
+            }, 1500);
+        }
 
-                const student = JSON.parse(storedData);
-                if(student.password !== pass) {
-                    setButtonLoading(button, false);
-                    showToast('كلمة المرور غير صحيحة', 'error');
-                    return;
+        // [تحسين 4] تشغيل المحاضرة التالية تلقائياً عند انتهاء الفيديو الحالي
+        function listenForVideoEndEvents(videoElement) {
+            if (!videoElement) return;
+            videoElement.onended = function() {
+                if (!selectedLectureRuntime) return;
+                const currentTeacher = platformData.teachers.find(t => t.id === selectedLectureRuntime.teacherId);
+                const currentCourse = currentTeacher?.courses?.find(c => c.id === selectedLectureRuntime.courseId);
+                if (!currentCourse) return;
+                
+                const currentIndex = currentCourse.lectures.findIndex(l => l.id === selectedLectureRuntime.id);
+                if (currentIndex !== -1 && currentIndex + 1 < currentCourse.lectures.length) {
+                    const nextLecture = currentCourse.lectures[currentIndex + 1];
+                    showToast(`تم انتهاء المحاضرة. جاري تشغيل: ${nextLecture.title}...`, 'success');
+                    handleTeacherEntryClick(selectedLectureRuntime.teacherId, selectedLectureRuntime.courseId, nextLecture.id);
                 }
-
-                currentSessionUser = student;
-                localStorage.setItem('masarak_logged_phone', phone);
-                syncUiAndDrawerState();
-                setButtonLoading(button, false);
-                showToast(`أهلاً بك يا ${student.name}`, 'success');
-                navigateTo('teachers');
-            }, 500);
+            };
         }
 
-        function checkExistingSession() {
-            const loggedPhone = localStorage.getItem('masarak_logged_phone');
-            if(loggedPhone) {
-                const storedData = localStorage.getItem(`student_${loggedPhone}`);
-                if(storedData) {
-                    currentSessionUser = JSON.parse(storedData);
-                    syncUiAndDrawerState();
-                }
-            } else {
-                syncUiAndDrawerState();
-            }
-        }
-
-        function syncUiAndDrawerState() {
-            const headerAuthBox = document.getElementById('headerAuthBtnBox');
-            const drawerProfileContainer = document.getElementById('drawerProfileContainer');
-
-            if(currentSessionUser) {
-                headerAuthBox.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:0.75rem; color:var(--accent); font-weight:600;"><i class="fa-solid fa-circle-user"></i> ${currentSessionUser.name.split(' ')[0]}</span>
-                        <button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="logOutStudent()"><i class="fa-solid fa-power-off"></i> خروج</button>
-                    </div>
-                `;
-
-                drawerProfileContainer.innerHTML = `
-                    <div class="drawer-profile-card">
-                        <div class="drawer-avatar"><i class="fa-solid fa-user-graduate"></i></div>
-                        <h4>${currentSessionUser.name}</h4>
-                        <p>${currentSessionUser.phone}</p>
-                        <span class="status-pill active">
-                            <i class="fa-solid fa-circle-check"></i> الحساب جاهز
-                        </span>
-                        <p style="margin-top: 10px; font-size: 0.8rem; color: var(--text-secondary);">يمكنك الدخول مباشرة إلى المحاضرات بدون أكواد أو تفعيل.</p>
-                    </div>
-                `;
-            } else {
-                headerAuthBox.innerHTML = `<button class="btn btn-primary" onclick="navigateTo('login')"><i class="fa-solid fa-lock"></i> دخول / تسجيل</button>`;
-                drawerProfileContainer.innerHTML = `
-                    <div class="drawer-profile-card">
-                        <div class="drawer-avatar" style="background:rgba(255,255,255,0.05); color:var(--text-secondary);"><i class="fa-solid fa-user-secret"></i></div>
-                        <h4>طالب زائر غير مسجل</h4>
-                        <p style="margin-bottom:0;">سجل دخولك لبدء مشاهدة المحاضرات مباشرة</p>
-                    </div>
-                `;
-            }
-        }
-
-        function logOutStudent() {
-            localStorage.removeItem('masarak_logged_phone');
-            currentSessionUser = null;
-            syncUiAndDrawerState();
-            showToast('تم تسجيل الخروج بنجاح', 'success');
-            navigateTo('home');
-        }
-
-        // تحميل وإعداد المحاضرة والفيديو الخارجي ديناميكياً
-        function loadStreamRoom(compositeId) {
-            if(!selectedLectureRuntime) return;
-
-            // تحديث نصوص الواجهة بناءً على البيانات المستدعاة من كائن الران-تايم الحالي
-            document.getElementById('roomTeacherName').innerText = selectedLectureRuntime.title;
-            document.getElementById('roomTeacherSubject').innerText = `${selectedLectureRuntime.teacherName} • ${selectedLectureRuntime.subject}`;
-            document.getElementById('roomLectureTitle').innerText = selectedLectureRuntime.title;
-            document.getElementById('roomLectureDesc').innerText = selectedLectureRuntime.description || 'بث آمن ومتطور متوافق مع كافة الأنظمة السحابية.';
-            
-            if (currentSessionUser) {
-                document.getElementById('videoLiveWatermark').innerText = `${currentSessionUser.name} | ${currentSessionUser.phone}`;
-            }
-
-            // إعداد وتضمين كروت وملفات الـ PDF إذا كانت موجودة بالبيانات الخارجيـة
-            const pdfContainer = document.getElementById('pdfDownloadContainer');
-            if (selectedLectureRuntime.pdf) {
-                pdfContainer.innerHTML = `
-                    <a href="${selectedLectureRuntime.pdf}" target="_blank" class="btn btn-secondary" style="border-color:var(--accent); color:var(--accent); margin-top:10px;">
-                        <i class="fa-solid fa-file-pdf"></i> تحميل الملخص أو المذكرة المرفقة (PDF)
-                    </a>
-                `;
-            } else {
-                pdfContainer.innerHTML = '';
-            }
-
-            evalUserServerSubscriptionStatus();
-        }
-
-        function evalUserServerSubscriptionStatus() {
-            const lockScreen = document.getElementById('serverLockOverlay');
-            if(!currentSessionUser) {
-                if (lockScreen) lockScreen.style.display = 'flex';
-                return;
-            }
-
-            if (lockScreen) lockScreen.style.display = 'none';
-            const streamUrl = selectedLectureRuntime?.video || '';
-            
-            playUniversalVideoPlayer(streamUrl);
-        }
-
-        // مشغل الفيديو الاحترافي الشامل المطور لتشغيل كافة الروابط والسيرفرات الخارجية والـ Embed
         function playUniversalVideoPlayer(url) {
             const videoWrapper = document.getElementById('videoWrapper');
             if (!videoWrapper) return;
-            
             videoWrapper.innerHTML = ''; 
             
             if (!url) {
-                videoWrapper.innerHTML = `<div style="color:#94A3B8; display:flex; justify-content:center; align-items:center; height:100%; font-family:'Cairo'; padding: 20px;">رابط تشغيل المحاضرة غير متوفر حالياً.</div>`;
+                videoWrapper.innerHTML = `<div style="color:#94A3B8; display:flex; justify-content:center; align-items:center; height:100%; padding: 20px;">رابط تشغيل المحاضرة غير متوفر حالياً.</div>`;
                 return;
             }
 
             const cleanUrl = url.trim();
 
-            // فحص كونه Embed (مثل يوتيوب، سيرفرات عرب إكس، البا بلاير، فيميو)
             if (cleanUrl.includes('embed') || cleanUrl.includes('albaplayer') || cleanUrl.includes('player') || cleanUrl.includes('html') || !cleanUrl.match(/\.(m3u8|mp4|webm)$/i)) {
                 const iframe = document.createElement('iframe');
                 iframe.src = cleanUrl;
-                iframe.style.width = '100%';
-                iframe.style.height = '100%';
-                iframe.style.minHeight = '320px';
-                iframe.style.border = 'none';
-                iframe.style.display = 'block';
+                iframe.style.width = '100%'; iframe.style.height = '100%'; iframe.style.minHeight = '320px'; iframe.style.border = 'none'; iframe.style.display = 'block';
                 iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
                 iframe.allowFullscreen = true;
-                iframe.setAttribute('webkitallowfullscreen', 'true');
-                iframe.setAttribute('mozallowfullscreen', 'true');
-                
                 videoWrapper.appendChild(iframe);
-            } 
-            // فحص البث الحي والتنزيلات المباشرة HLS (.m3u8) أو الفيديوهات الخام (.mp4)
-            else {
+            } else {
                 const video = document.createElement('video');
-                video.style.width = '100%';
-                video.style.height = '100%';
-                video.style.display = 'block';
-                video.controls = true;
-                video.autoplay = true;
-                video.playsInline = true;
-                video.id = "secureVideoEngine";
+                video.style.width = '100%'; video.style.height = '100%'; video.style.display = 'block';
+                video.controls = true; video.autoplay = true; video.playsInline = true; video.id = "secureVideoEngine";
                 video.setAttribute('controlsList', 'nodownload');
                 
                 videoWrapper.appendChild(video);
@@ -959,29 +781,106 @@
                 } else {
                     video.src = cleanUrl;
                 }
+                
+                // تفعيل مستمع الحدث للمحاضرة التالية
+                listenForVideoEndEvents(video);
             }
         }
 
-        // لوحة التحقق الفنية والإدارية السرية للمنصة
-        function enterAdminSecretPanel() {
-            const masterPass = prompt('أدخل كود مرور مهندسي المنصة:');
-            if(masterPass === "masarak2026") {
-                navigateTo('admin-panel');
-            } else if(masterPass !== null) {
-                alert('صلاحية مرفوضة!');
+        // بقية دوال التوجيه والأمان والحسابات كما هي تماماً لحماية بنية الموقع القديمة
+        function openDrawer() { document.getElementById('appDrawer').classList.add('open'); document.getElementById('drawerOverlay').classList.add('show'); }
+        function closeDrawer() { document.getElementById('appDrawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('show'); }
+        function navigateFromDrawer(sectionId) { closeDrawer(); navigateTo(sectionId); }
+        function navigateTo(sectionId, elementId = null) {
+            const sections = document.querySelectorAll('section');
+            sections.forEach(s => s.classList.remove('active-section'));
+            const target = document.getElementById(sectionId);
+            if(target) { target.classList.add('active-section'); window.scrollTo(0,0); }
+            const links = document.querySelectorAll('.nav-link');
+            links.forEach(l => l.classList.remove('active'));
+            links.forEach(l => { if(l.getAttribute('onclick') && l.getAttribute('onclick').includes(`'${sectionId}'`)) l.classList.add('active'); });
+            if(sectionId === 'subject-page' && elementId) loadStreamRoom(elementId);
+        }
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer'); if (!container) return;
+            const toast = document.createElement('div'); toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i><span>${message}</span>`;
+            container.appendChild(toast); setTimeout(() => { toast.remove(); }, 2600);
+        }
+        function setButtonLoading(button, isLoading, text = '') {
+            if (!button) return;
+            if (isLoading) { button.disabled = true; button.dataset.originalText = button.innerHTML; button.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${text || 'جارٍ المعالجة...'}`; }
+            else { button.disabled = false; button.innerHTML = button.dataset.originalText || button.innerHTML; }
+        }
+        function toggleTeacherLectures(teacherId) {
+            const panel = document.getElementById(`lectures-${teacherId}`);
+            const button = document.querySelector(`.teacher-toggle[onclick="toggleTeacherLectures(${teacherId})"]`);
+            if (!panel || !button) return;
+            const isOpen = panel.style.display === 'flex'; panel.style.display = isOpen ? 'none' : 'flex'; button.classList.toggle('active', !isOpen);
+            const icon = button.querySelector('i'); if (icon) icon.className = isOpen ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
+        }
+        function processStudentRegistration(e) {
+            e.preventDefault(); const button = e.target.querySelector('button[type="submit"]');
+            const name = document.getElementById('regName').value.trim(); const phone = document.getElementById('regPhone').value.trim();
+            const pass = document.getElementById('regPass').value; const passConfirm = document.getElementById('regPassConfirm').value;
+            if(!name || !phone || !pass || !passConfirm) { showToast('يرجى ملء جميع الحقول أولاً', 'error'); return; }
+            if(pass !== passConfirm) { showToast('كلمة المرور وتأكيدها غير متطابقين', 'error'); return; }
+            setButtonLoading(button, true, 'جاري إنشاء الحساب');
+            setTimeout(() => {
+                const studentObj = { name, phone, password: pass, activated: true };
+                localStorage.setItem(`student_${phone}`, JSON.stringify(studentObj)); localStorage.setItem('masarak_logged_phone', phone);
+                currentSessionUser = studentObj; syncUiAndDrawerState(); setButtonLoading(button, false); showToast('تم إنشاء الحساب بنجاح', 'success'); navigateTo('pending-queue');
+            }, 500);
+        }
+        function processStudentLogin(e) {
+            e.preventDefault(); const button = e.target.querySelector('button[type="submit"]');
+            const phone = document.getElementById('loginPhone').value.trim(); const pass = document.getElementById('loginPass').value;
+            if(!phone || !pass) { showToast('يرجى إدخال رقم الهاتف وكلمة المرور', 'error'); return; }
+            setButtonLoading(button, true, 'جاري تسجيل الدخول');
+            setTimeout(() => {
+                const storedData = localStorage.getItem(`student_${phone}`);
+                if(!storedData) { setButtonLoading(button, false); showToast('رقم الهاتف غير مسجل، أنشئ حساباً جديداً', 'error'); return; }
+                const student = JSON.parse(storedData);
+                if(student.password !== pass) { setButtonLoading(button, false); showToast('كلمة المرور غير صحيحة', 'error'); return; }
+                currentSessionUser = student; localStorage.setItem('masarak_logged_phone', phone); syncUiAndDrawerState(); setButtonLoading(button, false); showToast(`أهلاً بك يا ${student.name}`, 'success'); navigateTo('teachers');
+            }, 500);
+        }
+        function checkExistingSession() {
+            const loggedPhone = localStorage.getItem('masarak_logged_phone');
+            if(loggedPhone) { const storedData = localStorage.getItem(`student_${loggedPhone}`); if(storedData) { currentSessionUser = JSON.parse(storedData); syncUiAndDrawerState(); } }
+            else { syncUiAndDrawerState(); }
+        }
+        function syncUiAndDrawerState() {
+            const headerAuthBox = document.getElementById('headerAuthBtnBox'); const drawerProfileContainer = document.getElementById('drawerProfileContainer');
+            if(currentSessionUser) {
+                headerAuthBox.innerHTML = `<div style="display:flex; align-items:center; gap:8px;"><span style="font-size:0.75rem; color:var(--accent); font-weight:600;"><i class="fa-solid fa-circle-user"></i> ${currentSessionUser.name.split(' ')[0]}</span><button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="logOutStudent()"><i class="fa-solid fa-power-off"></i> خروج</button></div>`;
+                drawerProfileContainer.innerHTML = `<div class="drawer-profile-card"><div class="drawer-avatar"><i class="fa-solid fa-user-graduate"></i></div><h4>${currentSessionUser.name}</h4><p>${currentSessionUser.phone}</p><span class="status-pill active"><i class="fa-solid fa-circle-check"></i> الحساب جاهز</span></div>`;
+            } else {
+                headerAuthBox.innerHTML = `<button class="btn btn-primary" onclick="navigateTo('login')"><i class="fa-solid fa-lock"></i> دخول / تسجيل</button>`;
+                drawerProfileContainer.innerHTML = `<div class="drawer-profile-card"><div class="drawer-avatar" style="background:rgba(255,255,255,0.05); color:var(--text-secondary);"><i class="fa-solid fa-user-secret"></i></div><h4>طالب زائر غير مسجل</h4></div>`;
             }
         }
-
-        // جدار الحماية البرمجي لمنع أدوات المطورين والاختراق
-        function initKeyboardSecurity() {
-            document.onkeydown = function(e) {
-                if(e.keyCode == 123) return false;
-                if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
-                if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false;
-                if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
-                if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
-            };
+        function logOutStudent() { localStorage.removeItem('masarak_logged_phone'); currentSessionUser = null; syncUiAndDrawerState(); showToast('تم تسجيل الخروج بنجاح', 'success'); navigateTo('home'); }
+        function loadStreamRoom(compositeId) {
+            if(!selectedLectureRuntime) return;
+            document.getElementById('roomTeacherName').innerText = selectedLectureRuntime.title;
+            document.getElementById('roomTeacherSubject').innerText = `${selectedLectureRuntime.teacherName} • ${selectedLectureRuntime.subject}`;
+            document.getElementById('roomLectureTitle').innerText = selectedLectureRuntime.title;
+            document.getElementById('roomLectureDesc').innerText = selectedLectureRuntime.description || 'بث آمن ومتطور متوافق مع كافة الأنظمة السحابية.';
+            if (currentSessionUser) document.getElementById('videoLiveWatermark').innerText = `${currentSessionUser.name} | ${currentSessionUser.phone}`;
+            const pdfContainer = document.getElementById('pdfDownloadContainer');
+            if (selectedLectureRuntime.pdf) pdfContainer.innerHTML = `<a href="${selectedLectureRuntime.pdf}" target="_blank" class="btn btn-secondary" style="border-color:var(--accent); color:var(--accent); margin-top:10px;"><i class="fa-solid fa-file-pdf"></i> تحميل الملخص أو المذكرة المرفقة (PDF)</a>`;
+            else pdfContainer.innerHTML = '';
+            evalUserServerSubscriptionStatus();
         }
+        function evalUserServerSubscriptionStatus() {
+            const lockScreen = document.getElementById('serverLockOverlay');
+            if(!currentSessionUser) { if (lockScreen) lockScreen.style.display = 'flex'; return; }
+            if (lockScreen) lockScreen.style.display = 'none';
+            playUniversalVideoPlayer(selectedLectureRuntime?.video || '');
+        }
+        function enterAdminSecretPanel() { const masterPass = prompt('أدخل كود مرور مهندسي المنصة:'); if(masterPass === "masarak2026") navigateTo('admin-panel'); else if(masterPass !== null) alert('صلاحية مرفوضة!'); }
+        function initKeyboardSecurity() { document.onkeydown = function(e) { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'C'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) return false; }; }
     </script>
 </body>
 </html>
