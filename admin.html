@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROMEO ADMIN | لوحة الإدارة التعليمية</title>
+    <title>ROMEO ADMIN | لوحة تحكم جيتهاب المخصصة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -16,674 +16,447 @@
             --text: #ffffff;
             --text-dim: #8e94a5;
             --glass: rgba(255, 255, 255, 0.03);
-            --gold-glow: 0 0 15px rgba(229,184,11,0.2);
+            --gold-glow: 0 0 15px rgba(229,184,11,0.15);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-        body { background: var(--bg); color: var(--text); line-height: 1.5; overflow-x: hidden; }
+        body { background: var(--bg); color: var(--text); line-height: 1.5; padding: 20px; }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .view { display: none; animation: slideUp 0.4s ease forwards; padding: 20px; }
-        .view.active { display: block; }
+        .admin-container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; padding: 20px; border-bottom: 1px solid var(--glass); }
+        .header h1 { color: var(--primary); font-weight: 900; font-size: 2rem; }
+        .header p { color: var(--text-dim); font-size: 0.9rem; margin-top: 5px; }
 
-        /* --- Login Screen --- */
-        .login-container { max-width: 400px; margin: 100px auto; text-align: center; background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--glass); box-shadow: var(--gold-glow); }
-        .login-container i { font-size: 50px; color: var(--primary); margin-bottom: 20px; }
-        input, select, textarea { 
-            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: 1px solid var(--glass);
-            background: #05070a; color: white; outline: none; font-size: 14px;
-        }
-        input:focus, select:focus, textarea:focus { border-color: var(--primary); }
-        button { 
-            width: 100%; padding: 12px; border-radius: 10px; border: none; cursor: pointer; 
-            font-weight: 700; transition: 0.3s; font-size: 14px;
-        }
-        .btn-primary { background: var(--primary); color: #000; }
-        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 0 15px rgba(229,184,11,0.4); }
+        .config-card { background: linear-gradient(135deg, #1a2234, #161b26); border: 1px solid var(--primary); border-radius: 12px; padding: 20px; margin-bottom: 30px; box-shadow: var(--gold-glow); }
+        .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
 
-        /* --- Dashboard Header --- */
-        header { 
-            background: var(--card); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--glass); position: sticky; top: 0; z-index: 100;
-        }
-        .logo { font-weight: 900; font-size: 18px; letter-spacing: 1px; }
-        .logo span { color: var(--primary); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; margin-bottom: 30px; }
+        .card { background: var(--card); border: 1px solid var(--glass); border-radius: 12px; padding: 25px; box-shadow: var(--gold-glow); }
+        .card h2 { font-size: 1.25rem; color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; color: var(--text-dim); margin-bottom: 8px; font-size: 0.85rem; }
+        .form-control { width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass); border-radius: 8px; color: #fff; font-size: 0.9rem; }
+        .form-control:focus { outline: none; border-color: var(--primary); }
         
-        /* --- 3 الأزرار السحرية المطلوبة --- */
-        .admin-nav-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 25px 0; }
-        .tab-btn { background: var(--card); color: white; border: 1px solid var(--glass); padding: 15px; border-radius: 12px; font-weight: 700; font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: 0.3s; }
-        .tab-btn i { font-size: 20px; color: var(--primary); }
-        .tab-btn:hover, .tab-btn.active { background: var(--primary); color: black; box-shadow: var(--gold-glow); transform: translateY(-2px); }
-        .tab-btn:hover i, .tab-btn.active i { color: black; }
+        .btn { width: 100%; padding: 12px; background: var(--primary); color: #000; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-sync { background: var(--success); color: #fff; margin-bottom: 20px; width: auto; padding: 10px 20px; display: inline-flex; border: none; cursor: pointer; border-radius: 8px; font-weight: bold;}
 
-        /* --- Data Container / Tables --- */
-        .section-box { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid var(--glass); margin-bottom: 25px; }
-        .box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--glass); padding-bottom: 10px; }
-        .box-header h3 { font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .table-wrapper { background: var(--card); border: 1px solid var(--glass); border-radius: 12px; padding: 20px; overflow-x: auto; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; text-align: right; font-size: 0.9rem; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        th { color: var(--primary); }
+        .btn-delete { background: var(--danger); color: white; padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; width: auto; display: inline-flex; border: none; cursor: pointer; }
+
+        #generationResultBox { margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.02); border: 1px solid var(--primary); border-radius: 8px; text-align: center; display: none; }
         
-        .add-small-btn { width: auto; padding: 6px 15px; background: var(--success); color: white; font-size: 12px; border-radius: 6px; }
-
-        /* --- List Cards --- */
-        .data-item-card {
-            background: rgba(255,255,255,0.01); padding: 15px; border-radius: 12px; margin-bottom: 10px;
-            display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass);
-        }
-        .item-info h4 { font-size: 14px; margin-bottom: 4px; }
-        .item-info p { font-size: 12px; color: var(--text-dim); }
-        
-        .actions { display: flex; gap: 8px; }
-        .action-btn { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; }
-        .edit-btn { background: var(--primary); color: black; }
-        .del-btn { background: var(--danger); color: white; }
-
-        /* --- Form View --- */
-        .form-group { margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 15px; border: 1px solid var(--glass); }
-        .form-group h3 { font-size: 14px; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid var(--glass); padding-bottom: 5px; }
-        label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; }
-
-        /* --- Loader --- */
-        .loader { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8);
-            display: none; justify-content: center; align-items: center; z-index: 1000;
-        }
-        .spinner { width: 40px; height: 40px; border: 4px solid var(--primary); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        @media (max-width: 600px) {
-            .admin-nav-tabs { grid-template-columns: 1fr; gap: 10px; }
-            .data-item-card { flex-direction: column; gap: 12px; text-align: center; }
-        }
+        footer { text-align: center; margin-top: 60px; padding: 20px; color: var(--text-dim); font-size: 0.8rem; border-top: 1px solid var(--glass); }
     </style>
 </head>
 <body>
 
-    <div class="loader" id="loader"><div class="spinner"></div></div>
-
-    <!-- 1. واجهة تسجيل الدخول ببيانات GitHub -->
-    <div id="loginView" class="view active">
-        <div class="login-container">
-            <i class="fab fa-github"></i>
-            <h2>ROMEO ADMIN 🛠️</h2>
-            <p style="color:var(--text-dim); font-size: 12px; margin-bottom: 20px;">لوحة الإدارة الفنية والربط مع سيرفر السحابة</p>
-            <input type="password" id="ghToken" placeholder="GitHub Personal Access Token (جلب التوكن)">
-            <input type="text" id="ghRepo" placeholder="username/repository (اسم المستودع)">
-            <button class="btn-primary" onclick="loginToDatabase()">دخول والاتصال بالسيستم</button>
-        </div>
-    </div>
-
-    <!-- 2. لوحة التحكم الرئيسية بعد الدخول -->
-    <div id="dashboardView" class="view">
-        <header>
-            <div class="logo">ROMEO <span>SYSTEM</span></div>
-            <button onclick="logout()" style="width:auto; padding:5px 15px; background:none; color:var(--danger); border:1px solid var(--danger);">تسجيل خروج</button>
-        </header>
-
-        <!-- الأزرار الثلاثة المطلوبة للتبديل بين أقسام الإدارة -->
-        <div class="admin-nav-tabs">
-            <div class="tab-btn active" id="tab-codes" onclick="switchTab('codes')">
-                <i class="fa-solid fa-key"></i>
-                <span>أكواد الطلاب</span>
-            </div>
-            <div class="tab-btn" id="tab-videos" onclick="switchTab('videos')">
-                <i class="fa-solid fa-video"></i>
-                <span>رفع وإدارة الفيديوهات</span>
-            </div>
-            <div class="tab-btn" id="tab-teachers" onclick="switchTab('teachers')">
-                <i class="fa-solid fa-chalkboard-user"></i>
-                <span>إضافة مدرسين جدد</span>
-            </div>
+    <div class="admin-container">
+        <div class="header">
+            <h1><i class="fa-solid fa-code"></i> ROMEO GITHUB CONTROL PANEL</h1>
+            <p>لوحة التحكم المطورة المتوافقة كلياً مع هيكل بيانات data.json الخاص بك</p>
         </div>
 
-        <!-- قسم إدارة أكواد الطلاب -->
-        <div id="section-codes" class="sub-section">
-            <div class="section-box">
-                <div class="box-header">
-                    <h3><i class="fa-solid fa-shield-halved"></i> منظومة أكواد تفعيل السيرفرات</h3>
-                    <button class="add-small-btn" onclick="openForm('code')">➕ توليد كود جديد</button>
+        <div class="config-card">
+            <h3 style="color: var(--primary); font-size: 1.1rem;"><i class="fa-brands fa-github"></i> إعدادات الربط والاتصال بمستودع GitHub</h3>
+            <div class="config-grid">
+                <div class="form-group">
+                    <label>اسم المستخدم (GitHub Username)</label>
+                    <input type="text" id="ghUser" class="form-control" placeholder="مثال: kamal-elmarakby">
                 </div>
-                <div id="codesListContainer"></div>
-            </div>
-        </div>
-
-        <!-- قسم إدارة ورفع الفيديوهات -->
-        <div id="section-videos" class="sub-section" style="display:none;">
-            <div class="section-box">
-                <div class="box-header">
-                    <h3><i class="fa-solid fa-clapperboard"></i> المحاضرات وحصص البث المرفوعة</h3>
-                    <button class="add-small-btn" onclick="openForm('video')">➕ إضافة فيديو/محاضرة</button>
+                <div class="form-group">
+                    <label>اسم المستودع (Repository Name)</label>
+                    <input type="text" id="ghRepo" class="form-control" placeholder="مثال: platform-repo">
                 </div>
-                <div id="videosListContainer"></div>
-            </div>
-        </div>
-
-        <!-- قسم إدارة إضافة المدرسين -->
-        <div id="section-teachers" class="sub-section" style="display:none;">
-            <div class="section-box">
-                <div class="box-header">
-                    <h3><i class="fa-solid fa-users-gear"></i> هيئة التدريس والمواد الحالية</h3>
-                    <button class="add-small-btn" onclick="openForm('teacher')">➕ إضافة مدرس جديد</button>
+                <div class="form-group">
+                    <label>مسار الملف (File Path)</label>
+                    <input type="text" id="ghPath" class="form-control" value="data.json">
                 </div>
-                <div id="teachersListContainer"></div>
+                <div class="form-group">
+                    <label>توكن جيتهاب الشخصي (GitHub Token)</label>
+                    <input type="password" id="ghToken" class="form-control" placeholder="ghp_XXXXXXXXXXXXXXXXXXXX">
+                </div>
+            </div>
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <button class="btn btn-sync" onclick="fetchDataFromGitHub()"><i class="fa-solid fa-rotate"></i> اتصال وجلب البيانات الحالية</button>
+                <button class="btn btn-sync" style="background: rgba(255,255,255,0.05); color:#fff; border: 1px solid var(--glass);" onclick="saveConfigToLocalStorage()">حفظ إعدادات الربط محلياً</button>
             </div>
         </div>
-    </div>
 
-    <!-- 3. واجهات الإدخال التفاعلية (الفورم) -->
-    <div id="formView" class="view">
-        <header>
-            <div onclick="showView('dashboardView')" style="cursor:pointer;"><i class="fas fa-arrow-right"></i> رجوع للوحة</div>
-            <div class="logo">إدارة <span>البيانات والمزامنة</span></div>
-        </header>
+        <div class="grid">
+            <div class="card">
+                <h2><i class="fa-solid fa-user-plus"></i> إضافة مدرس جديد</h2>
+                <div class="form-group">
+                    <label>اسم المدرس</label>
+                    <input type="text" id="admTeacherName" class="form-control" placeholder="مثال: مهندس كمال المراكبي">
+                </div>
+                <div class="form-group">
+                    <label>المادة الدراسية / التخصص</label>
+                    <input type="text" id="admTeacherSubject" class="form-control" placeholder="مثال: الهندسة والتقنية">
+                </div>
+                <div class="form-group">
+                    <label>رابط الصورة الشخصية (img)</label>
+                    <input type="url" id="admTeacherImg" class="form-control" placeholder="https://i.postimg.cc/...">
+                </div>
+                <div class="form-group">
+                    <label>وصف المدرس (desc)</label>
+                    <input type="text" id="admTeacherDesc" class="form-control" placeholder="خبير في الشرح العملي والتقني...">
+                </div>
+                <div class="form-group">
+                    <label>رابط الفيديو التعريفي (stream)</label>
+                    <input type="url" id="admTeacherStream" class="form-control" placeholder="https://www.youtube.com/embed/...">
+                </div>
+                <button class="btn" onclick="addNewTeacherSecurely()"><i class="fa-solid fa-cloud-upload"></i> حفظ وإرسال المدرس إلى جيتهاب</button>
+            </div>
 
-        <div style="max-width: 600px; margin: 20px auto;">
-            <input type="hidden" id="entryType">
-            <input type="hidden" id="entryId">
+            <div class="card">
+                <h2><i class="fa-solid fa-video"></i> إضافة محاضرة / فيديو جديد</h2>
+                <div class="form-group">
+                    <label>عنوان المحاضرة (title)</label>
+                    <input type="text" id="admLecTitle" class="form-control" placeholder="المحاضرة الأولى | أساسيات البرمجة...">
+                </div>
+                <div class="form-group">
+                    <label>اختر المدرس المسئول (teacherName)</label>
+                    <select id="admLecTeacherSelect" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>رابط الفيديو الرئيسي (url)</label>
+                    <input type="url" id="admLecUrl" class="form-control" placeholder="https://www.youtube.com/embed/...">
+                </div>
+                <div class="form-group">
+                    <label>رابط البث/التشغيل الاحتياطي (stream)</label>
+                    <input type="url" id="admLecStream" class="form-control" placeholder="عادة يكون نفس رابط الفيديو">
+                </div>
+                <button class="btn" onclick="addNewVideoSecurely()"><i class="fa-solid fa-plus-circle"></i> نشر المحاضرة وتحديث جيتهاب</button>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 30px;">
+            <h2><i class="fa-solid fa-key"></i> إدارة أكواد الطلاب المسموح لهم بالدخول (allowed_keys)</h2>
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 0;">
+                <div class="form-group">
+                    <label>رقم هاتف الطالب</label>
+                    <input type="tel" class="form-control" id="admStudentPhone" placeholder="مثال: 01027675035" style="text-align: center;">
+                </div>
+                <div class="form-group">
+                    <label>كود التفعيل (أو اتركه فارغاً لتوليد كود عشوائي)</label>
+                    <input type="text" class="form-control" id="admStudentCode" placeholder="مثال: 311020" style="text-align: center;">
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <button class="btn" style="max-width: 300px; margin: 0 auto;" onclick="addOrGenerateStudentKey()"><i class="fa-solid fa-user-check"></i> تفعيل الهاتف / توليد الكود</button>
+            </div>
             
-            <!-- فورم الكود المولد -->
-            <div id="form-code-group" class="form-type-group" style="display:none;">
-                <div class="form-group">
-                    <h3>🔑 توليد كود طالب</h3>
-                    <label>رقم هاتف الطالب المسجل بدقة</label>
-                    <input type="tel" id="cPhone" placeholder="مثال: 01286716976" oninput="autoGenerateCodeToken()">
-                    <label>كود التفعيل الذكي المولد (يتم إنشاؤه تلقائياً)</label>
-                    <input type="text" id="cToken" placeholder="MSRK-XXXX-XXXX" readonly style="letter-spacing:1px; font-family:monospace; color:var(--primary);">
-                </div>
+            <div id="generationResultBox">
+                <p style="font-size: 0.85rem;">تم ربط الهاتف بنجاح، كود الدخول هو:</p>
+                <h3 id="generatedKeyDisplay" style="color: var(--primary); margin: 10px 0; font-family: monospace; font-size: 1.5rem; letter-spacing: 2px;">XXXXXX</h3>
             </div>
-
-            <!-- فورم الفيديو والمحاضرة -->
-            <div id="form-video-group" class="form-type-group" style="display:none;">
-                <div class="form-group">
-                    <h3>🎬 بيانات المحاضرة</h3>
-                    <label>عنوان الفيديو / رقم المحاضرة</label>
-                    <input type="text" id="vTitle" placeholder="مثال: المحاضرة الأولى - تأسيس النحو">
-                    <label>رابط البث الآمن (HLS .m3u8 أو MP4 مباشر)</label>
-                    <input type="url" id="vUrl" placeholder="https://domain.com/stream/index.m3u8">
-                    <label>ربط المحاضرة بمدرس معين</label>
-                    <select id="vTeacherSelect"></select>
-                </div>
-            </div>
-
-            <!-- فورم المدرس الجديد -->
-            <div id="form-teacher-group" class="form-type-group" style="display:none;">
-                <div class="form-group">
-                    <h3>👨‍🏫 بيانات المدرس والمادة</h3>
-                    <label>اسم الأستاذ المعلم</label>
-                    <input type="text" id="tName" placeholder="مثال: مستر محمد صلاح">
-                    <label>المادة التعليمية</label>
-                    <input type="text" id="tSubject" placeholder="مثال: اللغة العربية">
-                    <label>رابط صورة غلاف المدرس الشخصية</label>
-                    <input type="url" id="tImg" placeholder="رابط مباشر للصورة">
-                    <label>وصف موجز لطريقة الشرح والملازم</label>
-                    <textarea id="tDesc" rows="3" placeholder="اكتب نبذة تظهر للطلاب بالصفحة الرئيسية..."></textarea>
-                </div>
-            </div>
-
-            <button class="btn-primary" onclick="submitDataToSystem()">حفظ البيانات ورفعها إلى GitHub 🚀</button>
         </div>
+
+        <div class="table-wrapper">
+            <h2><i class="fa-solid fa-users"></i> المدرسين المتواجدين حالياً (`teachers`)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>المادة الدراسية</th>
+                        <th>حذف</th>
+                    </tr>
+                </thead>
+                <tbody id="teachersTableBody">
+                    <tr><td colspan="3" style="text-align:center; color:var(--text-dim);">يرجى جلب البيانات أولاً...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-wrapper">
+            <h2><i class="fa-solid fa-clapperboard"></i> الفيديوهات والمحاضرات المنشورة (`videos`)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>عنوان المحاضرة</th>
+                        <th>اسم المدرس</th>
+                        <th>حذف</th>
+                    </tr>
+                </thead>
+                <tbody id="videosTableBody">
+                    <tr><td colspan="3" style="text-align:center; color:var(--text-dim);">يرجى جلب البيانات أولاً...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-wrapper">
+            <h2><i class="fa-solid fa-id-card"></i> الهواتف والأكواد المفعلة حالياً (`allowed_keys`)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>رقم الهاتف</th>
+                        <th>كود التفعيل الخاص به</th>
+                        <th>إلغاء التفعيل</th>
+                    </tr>
+                </thead>
+                <tbody id="keysTableBody">
+                    <tr><td colspan="3" style="text-align:center; color:var(--text-dim);">يرجى جلب البيانات أولاً...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
     </div>
+
+    <footer>
+        <p>&copy; 2026 منصة مسارك التعليمية | برعاية وتطوير هندسي خاص</p>
+    </footer>
 
     <script>
-        // --- هيكل ومستودع البيانات الرئيسي الشامل ---
-        let CONFIG = { token: '', repo: '', sha: '' };
-        let PLATFORM_DB = {
-            allowed_keys: {}, // الكود مربوط برقم الهاتف لمنع التسريب
-            videos: [],       // المحاضرات والروابط المشفرة
-            teachers: []      // داتا المدرسين والمواد
+        let platformData = {
+            allowed_keys: {},
+            videos: [],
+            teachers: []
         };
+        let currentFileSha = null; 
 
-        // نظام التبديل بين الشاشات الرئيسية
-        function showView(viewId) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
+        window.addEventListener('DOMContentLoaded', () => {
+            loadConfigFromLocalStorage();
+        });
+
+        function saveConfigToLocalStorage() {
+            localStorage.setItem('gh_user', document.getElementById('ghUser').value.trim());
+            localStorage.setItem('gh_repo', document.getElementById('ghRepo').value.trim());
+            localStorage.setItem('gh_path', document.getElementById('ghPath').value.trim());
+            localStorage.setItem('gh_token', document.getElementById('ghToken').value.trim());
+            alert('تم حفظ إعدادات الاتصال بنجاح على متصفحك.');
         }
 
-        // نظام التبديل بين الـ 3 أزرار المطلوبة
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.sub-section').forEach(s => s.style.display = 'none');
-            
-            document.getElementById(`tab-${tabName}`).classList.add('active');
-            document.getElementById(`section-${tabName}`).style.display = 'block';
+        function loadConfigFromLocalStorage() {
+            if(localStorage.getItem('gh_user')) document.getElementById('ghUser').value = localStorage.getItem('gh_user');
+            if(localStorage.getItem('gh_repo')) document.getElementById('ghRepo').value = localStorage.getItem('gh_repo');
+            if(localStorage.getItem('gh_path')) document.getElementById('ghPath').value = localStorage.getItem('gh_path');
+            if(localStorage.getItem('gh_token')) document.getElementById('ghToken').value = localStorage.getItem('gh_token');
         }
 
-        // --- 1. تسجيل الدخول والاتصال بـ GitHub وجلب ملف data.json التعليمي الموحد ---
-        async function loginToDatabase() {
-            const token = document.getElementById('ghToken').value.trim();
+        // جلب الملف من GitHub
+        async function fetchDataFromGitHub() {
+            const user = document.getElementById('ghUser').value.trim();
             const repo = document.getElementById('ghRepo').value.trim();
-            if(!token || !repo) return alert("من فضلك أدخل التوكن ومسار المستودع بالكامل!");
+            const path = document.getElementById('ghPath').value.trim();
+            const token = document.getElementById('ghToken').value.trim();
 
-            toggleLoader(true);
+            if(!user || !repo || !path || !token) {
+                alert('يرجى كتابة كافة بيانات الربط وتوكن جيتهاب أولاً!');
+                return;
+            }
+
+            const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}`;
+            
             try {
-                // جلب أو إنشاء ملف قاعدة البيانات التعليمية الموحد data.json
-                const res = await fetch(`https://api.github.com/repos/${repo}/contents/data.json`, {
+                const response = await fetch(url, {
                     headers: { 'Authorization': `token ${token}` }
                 });
                 
-                if(res.status === 404) {
-                    // تحضير هيكل بيانات افتراضي نظيف لو الملف مش موجود لسه في حساب جيت هاب
-                    PLATFORM_DB = { allowed_keys: {}, videos: [], teachers: [] };
-                    CONFIG = { token, repo, sha: '' };
-                } else {
-                    const data = await res.json();
-                    const decodedContent = decodeURIComponent(escape(atob(data.content)));
-                    PLATFORM_DB = JSON.parse(decodedContent);
-                    CONFIG = { token, repo, sha: data.sha };
-                }
+                if(!response.ok) throw new Error('لم نتمكن من الوصول للملف، تأكد من صحة التوكن واسم المستودع.');
                 
-                renderAllLists();
-                showView('dashboardView');
-            } catch (e) {
-                alert("فشل الاتصال: تأكد من صحة التوكن واسم المستودع بشكل صحيح.");
+                const fileInfo = await response.json();
+                currentFileSha = fileInfo.sha; 
+                
+                const utf8String = decodeURIComponent(escape(atob(fileInfo.content.replace(/\s/g, ''))));
+                const parsedData = JSON.parse(utf8String);
+                
+                platformData.allowed_keys = parsedData.allowed_keys || {};
+                platformData.videos = parsedData.videos || [];
+                platformData.teachers = parsedData.teachers || [];
+                
+                updateDropdowns();
+                renderAllTables();
+                alert('تم الاتصال بنجاح وقراءة البيانات الحالية من جيتهاب!');
+            } catch (error) {
+                alert('خطأ أثناء جلب الملف: ' + error.message);
             }
-            toggleLoader(false);
         }
 
-        // تفريغ ورندرة القوائم الثلاثة في لوحة التحكم الديناميكية
-        function renderAllLists() {
-            // أ. رندرة أكواد الطلاب
-            const codesBox = document.getElementById('codesListContainer');
-            codesBox.innerHTML = '';
-            const phoneKeys = Object.keys(PLATFORM_DB.allowed_keys || {});
-            if(phoneKeys.length === 0) {
-                codesBox.innerHTML = `<p style="color:var(--text-dim); font-size:13px; text-align:center; padding:15px;">لا توجد أكواد مولدة بالسيستم حالياً.</p>`;
+        // حفظ ورفع التحديثات لـ GitHub
+        async function pushDataToGitHub() {
+            const user = document.getElementById('ghUser').value.trim();
+            const repo = document.getElementById('ghRepo').value.trim();
+            const path = document.getElementById('ghPath').value.trim();
+            const token = document.getElementById('ghToken').value.trim();
+
+            if(!currentFileSha) {
+                alert('تنبيه: قم بعمل "اتصال وجلب البيانات" أولاً قبل إجراء أي تعديل.');
+                return;
             }
-            phoneKeys.forEach(phone => {
-                const card = document.createElement('div');
-                card.className = 'data-item-card';
-                card.innerHTML = `
-                    <div class="item-info">
-                        <h4>هاتف الطالب: ${phone}</h4>
-                        <p style="color:var(--success); font-weight:bold; font-family:monospace; font-size:13px;">كود التفعيل: ${PLATFORM_DB.allowed_keys[phone]}</p>
-                    </div>
-                    <div class="actions">
-                        <div class="action-btn del-btn" onclick="deleteEntry('code', '${phone}')"><i class="fas fa-trash"></i></div>
-                    </div>
-                `;
-                codesBox.appendChild(card);
-            });
 
-            // ب. رندرة الفيديوهات والمحاضرات
-            const videosBox = document.getElementById('videosListContainer');
-            videosBox.innerHTML = '';
-            if((PLATFORM_DB.videos || []).length === 0) {
-                videosBox.innerHTML = `<p style="color:var(--text-dim); font-size:13px; text-align:center; padding:15px;">لا توجد محاضرات مضافة حتى الآن.</p>`;
-            }
-            (PLATFORM_DB.videos || []).forEach(v => {
-                const card = document.createElement('div');
-                card.className = 'data-item-card';
-                card.innerHTML = `
-                    <div class="item-info">
-                        <h4>${v.title}</h4>
-                        <p>المدرس المسؤول: ${v.teacherName || 'غير محدد'}</p>
-                    </div>
-                    <div class="actions">
-                        <div class="action-btn edit-btn" onclick="editEntry('video', ${v.id})"><i class="fas fa-edit"></i></div>
-                        <div class="action-btn del-btn" onclick="deleteEntry('video', ${v.id})"><i class="fas fa-trash"></i></div>
-                    </div>
-                `;
-                videosBox.appendChild(card);
-            });
-
-            // ج. رندرة المدرسين الجدد
-            const teachersBox = document.getElementById('teachersListContainer');
-            teachersBox.innerHTML = '';
-            if((PLATFORM_DB.teachers || []).length === 0) {
-                teachersBox.innerHTML = `<p style="color:var(--text-dim); font-size:13px; text-align:center; padding:15px;">لا يوجد مدرسين مضافين بالمنصة.</p>`;
-            }
-            (PLATFORM_DB.teachers || []).forEach(t => {
-                const card = document.createElement('div');
-                card.className = 'data-item-card';
-                card.innerHTML = `
-                    <div class="item-info">
-                        <h4>${t.name}</h4>
-                        <p>مادة: ${t.subject}</p>
-                    </div>
-                    <div class="actions">
-                        <div class="action-btn edit-btn" onclick="editEntry('teacher', ${t.id})"><i class="fas fa-edit"></i></div>
-                        <div class="action-btn del-btn" onclick="deleteEntry('teacher', ${t.id})"><i class="fas fa-trash"></i></div>
-                    </div>
-                `;
-                teachersBox.appendChild(card);
-            });
-
-            // تحديث سلكتور اختيار المدرسين في فورم رفع الفيديوهات ديناميكياً
-            const selectElement = document.getElementById('vTeacherSelect');
-            selectElement.innerHTML = (PLATFORM_DB.teachers || []).map(t => `<option value="${t.id}">${t.name} (${t.subject})</option>`).join('');
-        }
-
-        // حاقن توليد الكود الفردي المشفر من رقم الهاتف المكتوب لمنع السرقة
-        function autoGenerateCodeToken() {
-            const phone = document.getElementById('cPhone').value.trim();
-            if(!phone) { document.getElementById('cToken').value = ""; return; }
-            // خوارزمية تشفير الأكواد الخاصة بك يا روماني لتطابق الكود برقم الفون
-            const token = "MSRK-" + btoa(phone).substring(0, 8).toUpperCase();
-            document.getElementById('cToken').value = token;
-        }
-
-        // فتح الفورم وتجهيز الإدخالات حسب نوع الزر المضغوط
-        function openForm(type) {
-            document.getElementById('entryType').value = type;
-            document.getElementById('entryId').value = '';
+            const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}`;
             
-            // إخفاء كل الجروبات وتصفير المدخلات أولاً
-            document.querySelectorAll('.form-type-group').forEach(g => g.style.display = 'none');
-            document.querySelectorAll('#formView input, #formView textarea').forEach(i => i.value = '');
-            
-            // إظهار الجروب المحدد
-            document.getElementById(`form-${type}-group`).style.display = 'block';
-            showView('formView');
-        }
+            const jsonString = JSON.stringify(platformData, null, 2);
+            const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
 
-        // تعديل البيانات السابقة
-        function editEntry(type, id) {
-            openForm(type);
-            document.getElementById('entryId').value = id;
+            const payload = {
+                message: "تحديث السيرفر والبيانات من لوحة التحكم الذكية",
+                content: base64Content,
+                sha: currentFileSha
+            };
 
-            if(type === 'video') {
-                const v = PLATFORM_DB.videos.find(x => x.id === id);
-                document.getElementById('vTitle').value = v.title;
-                document.getElementById('vUrl').value = v.stream;
-                document.getElementById('vTeacherSelect').value = v.teacherId;
-            } else if(type === 'teacher') {
-                const t = PLATFORM_DB.teachers.find(x => x.id === id);
-                document.getElementById('tName').value = t.name;
-                document.getElementById('tSubject').value = t.subject;
-                document.getElementById('tImg').value = t.img;
-                document.getElementById('tDesc').value = t.desc;
-            }
-        }
-
-        // حفظ البيانات الشامل وضخها في المستودع بعد معالجة الـ Object المطلوب
-        function submitDataToSystem() {
-            const type = document.getElementById('entryType').value;
-            const id = document.getElementById('entryId').value;
-
-            if(type === 'code') {
-                const phone = document.getElementById('cPhone').value.trim();
-                const token = document.getElementById('cToken').value.trim();
-                if(!phone) return alert("يرجى كتابة رقم الهاتف أولاً لتوليد كود التفعيل!");
-                
-                if(!PLATFORM_DB.allowed_keys) PLATFORM_DB.allowed_keys = {};
-                PLATFORM_DB.allowed_keys[phone] = token;
-
-            } else if(type === 'video') {
-                const title = document.getElementById('vTitle').value.trim();
-                const stream = document.getElementById('vUrl').value.trim();
-                const teacherId = Number(document.getElementById('vTeacherSelect').value);
-                const teacherObj = PLATFORM_DB.teachers.find(x => x.id === teacherId);
-                
-                if(!title || !stream) return alert("برجاء إدخال عنوان الفيديو ورابط البث!");
-
-                const videoData = {
-                    id: id ? Number(id) : Date.now(),
-                    title,
-                    stream,
-                    teacherId,
-                    teacherName: teacherObj ? teacherObj.name : 'عام'
-                };
-
-                if(id) {
-                    const idx = PLATFORM_DB.videos.findIndex(x => x.id === Number(id));
-                    PLATFORM_DB.videos[idx] = videoData;
-                } else {
-                    if(!PLATFORM_DB.videos) PLATFORM_DB.videos = [];
-                    PLATFORM_DB.videos.push(videoData);
-                }
-
-            } else if(type === 'teacher') {
-                const name = document.getElementById('tName').value.trim();
-                const subject = document.getElementById('tSubject').value.trim();
-                let img = document.getElementById('tImg').value.trim();
-                const desc = document.getElementById('tDesc').value.trim();
-
-                if(!name || !subject) return alert("برجاء إدخال اسم المدرس والمادة التعليمية!");
-                if(!img) img = "https://via.placeholder.com/300x260/161b26/ffffff?text=" + encodeURIComponent(subject);
-
-                const teacherData = {
-                    id: id ? Number(id) : Date.now(),
-                    name,
-                    subject,
-                    img,
-                    desc: desc || "لا يوجد وصف مضاف حالياً لهذه المادة."
-                };
-
-                if(id) {
-                    const idx = PLATFORM_DB.teachers.findIndex(x => x.id === Number(id));
-                    PLATFORM_DB.teachers[idx] = teacherData;
-                } else {
-                    if(!PLATFORM_DB.teachers) PLATFORM_DB.teachers = [];
-                    PLATFORM_DB.teachers.push(teacherData);
-                }
-            }
-
-            syncAndPushToGithub();
-        }
-
-        // حذف كود أو فيديو أو مدرس بشكل فوري من مصفوفة جيت هاب
-        function deleteEntry(type, keyId) {
-            if(!confirm("هل أنت متأكد تماماً من رغبتك في حذف هذا العنصر نهائياً؟")) return;
-
-            if(type === 'code') {
-                delete PLATFORM_DB.allowed_keys[keyId];
-            } else if(type === 'video') {
-                PLATFORM_DB.videos = PLATFORM_DB.videos.filter(x => x.id !== Number(keyId));
-            } else if(type === 'teacher') {
-                PLATFORM_DB.videos = PLATFORM_DB.videos.filter(x => x.teacherId !== Number(keyId)); // حذف فيديوهات المدرس التلقائية أيضاً لمنع المشاكل
-                PLATFORM_DB.teachers = PLATFORM_DB.teachers.filter(x => x.id !== Number(keyId));
-            }
-
-            syncAndPushToGithub();
-        }
-
-        // --- ٢. الرفع والمزامنة الآمنة والمباشرة مع مستودع GitHub ودعم أحرف اللغة العربية بالكامل دون مشاكل ترميز ---
-        async function syncAndPushToGithub() {
-            toggleLoader(true);
             try {
-                const jsonString = JSON.stringify(PLATFORM_DB, null, 2);
-                // استخدام ترميز يونيكود فخم يدعم اللغة العربية بنسبة 100% دون ظهور الرموز الغريبة
-                const contentBase64 = btoa(unescape(encodeURIComponent(jsonString)));
-                
-                const res = await fetch(`https://api.github.com/repos/${CONFIG.repo}/contents/data.json`, {
+                const response = await fetch(url, {
                     method: 'PUT',
-                    headers: { 
-                        'Authorization': `token ${CONFIG.token}`,
+                    headers: {
+                        'Authorization': `token ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        message: "ROMEO ADMIN - Educational Platform Sync (UTF-8 Update)",
-                        content: contentBase64,
-                        sha: CONFIG.sha
-                    })
+                    body: JSON.stringify(payload)
                 });
-                
-                const result = await res.json();
-                if(res.ok) {
-                    CONFIG.sha = result.content.sha; // تحديث كود SHA الخاص بالملف للعملية القادمة
-                    alert("تم الحفظ الفوري ومزامنة البيانات وتحديث الملف على سيرفر GitHub بنجاح! ✅");
-                    renderAllLists();
-                    showView('dashboardView');
+
+                if(response.ok) {
+                    const result = await response.json();
+                    currentFileSha = result.content.sha;
+                    renderAllTables();
+                    updateDropdowns();
+                    alert('تم حفظ التعديلات وحقنها داخل الملف على جيتهاب بنجاح!');
                 } else {
-                    throw new Error(result.message);
+                    alert('فشل رفع التحديث، يرجى إعادة المحاولة أو جلب البيانات مجدداً.');
                 }
-            } catch (e) {
-                alert("حدث خطأ أثناء مزامنة ورفع البيانات لجيت هاب: " + e.message);
+            } catch(e) {
+                alert('خطأ في الاتصال بالخادم السحابي لجيتهاب.');
             }
-            toggleLoader(false);
         }
 
-        function toggleLoader(show) {
-            document.getElementById('loader').style.display = show ? 'flex' : 'none';
+        function updateDropdowns() {
+            const select = document.getElementById('admLecTeacherSelect');
+            if(!select) return;
+            select.innerHTML = platformData.teachers.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
         }
 
-        function logout() {
-            location.reload();
+        function renderAllTables() {
+            // 1. جدول المدرسين
+            const tBody = document.getElementById('teachersTableBody');
+            tBody.innerHTML = platformData.teachers.map(t => `
+                <tr>
+                    <td><strong>${t.name}</strong></td>
+                    <td>${t.subject}</td>
+                    <td><button class="btn-delete" onclick="deleteTeacher(${t.id})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>
+            `).join('') || `<tr><td colspan="3" style="text-align:center;">لا يوجد مدرسين حالياً</td></tr>`;
+
+            // 2. جدول الفيديوهات
+            const vBody = document.getElementById('videosTableBody');
+            vBody.innerHTML = platformData.videos.map(v => `
+                <tr>
+                    <td>${v.title}</td>
+                    <td><span style="color:var(--primary)">${v.teacherName}</span></td>
+                    <td><button class="btn-delete" onclick="deleteVideo(${v.id})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>
+            `).join('') || `<tr><td colspan="3" style="text-align:center;">لا توجد فيديوهات منشورة حالياً</td></tr>`;
+
+            // 3. جدول الأكواد والمفاتيح المسموحة
+            const kBody = document.getElementById('keysTableBody');
+            let keysHtml = '';
+            for (const [phone, code] of Object.entries(platformData.allowed_keys)) {
+                keysHtml += `
+                    <tr>
+                        <td style="font-family: monospace;">${phone}</td>
+                        <td style="font-family: monospace; color: var(--success); font-weight: bold;">${code}</td>
+                        <td><button class="btn-delete" onclick="deleteKey('${phone}')"><i class="fa-solid fa-user-xmark"></i></button></td>
+                    </tr>
+                `;
+            }
+            kBody.innerHTML = keysHtml || `<tr><td colspan="3" style="text-align:center;">لا توجد هواتف مفعلة حالياً</td></tr>`;
         }
-// =========================================================
-// تحديثات المزامنة الشاملة: حفظ الطلاب، الفيديوهات، وربط المدرسين
-// =========================================================
 
-// دالة لتحديث قائمة المدرسين المنسدلة تلقائياً داخل فورم إضافة المحاضرات
-function updateTeachersDropdown() {
-    // حاول العثور على حقل اختيار المدرس (المفترض وجوده أو سنقوم بإنشائه ديناميكياً)
-    let selectElement = document.getElementById('lectureTeacherSelect');
-    
-    // إذا لم يكن الحقل موجوداً في الفورم، سنقوم بالبحث عن أول حقل input مخصص لاسم المدرس ونستبدله بـ select ذكي
-    if (!selectElement) {
-        const fallbackInput = document.getElementById('lectureTeacher') || document.querySelector('[placeholder="اسم المدرس"]') || document.querySelector('[placeholder="اختر المدرس"]');
-        if (fallbackInput) {
-            selectElement = document.createElement('select');
-            selectElement.id = 'lectureTeacherSelect';
-            selectElement.className = fallbackInput.className;
-            selectElement.style.cssText = fallbackInput.style.cssText;
-            fallbackInput.parentNode.replaceChild(selectElement, fallbackInput);
+        // إضافة مدرس جديد
+        function addNewTeacherSecurely() {
+            const name = document.getElementById('admTeacherName').value.trim();
+            const subject = document.getElementById('admTeacherSubject').value.trim();
+            const img = document.getElementById('admTeacherImg').value.trim() || "https://i.postimg.cc/PxnfVzqN/images-(4).jpg";
+            const desc = document.getElementById('admTeacherDesc').value.trim() || "تميز في الأداء والشرح الممتع.";
+            const stream = document.getElementById('admTeacherStream').value.trim();
+
+            if(!name || !subject || !stream) {
+                alert('يرجى ملء الحقول الإلزامية: اسم المدرس، التخصص، ورابط فيديو التعريف!');
+                return;
+            }
+
+            const newTeacher = { id: Date.now(), name, subject, img, desc, stream };
+            platformData.teachers.push(newTeacher);
+            pushDataToGitHub();
+
+            document.getElementById('admTeacherName').value = '';
+            document.getElementById('admTeacherSubject').value = '';
+            document.getElementById('admTeacherImg').value = '';
+            document.getElementById('admTeacherDesc').value = '';
+            document.getElementById('admTeacherStream').value = '';
         }
-    }
 
-    if (!selectElement) return;
+        // إضافة فيديو جديد
+        function addNewVideoSecurely() {
+            const title = document.getElementById('admLecTitle').value.trim();
+            const teacherName = document.getElementById('admLecTeacherSelect').value;
+            const url = document.getElementById('admLecUrl').value.trim();
+            const stream = document.getElementById('admLecStream').value.trim() || url;
 
-    // تنظيف القائمة وضخ المدرسين المتوفرين في المنصة حالياً
-    selectElement.innerHTML = '<option value="">-- اختر المدرس لربط المحاضرة به --</option>';
-    
-    if (platformData && platformData.teachers) {
-        platformData.teachers.forEach((teacher, index) => {
-            const option = document.createElement('option');
-            option.value = index; // ربط عبر رقم المدرس في المصفوفة لضمان الدقة
-            option.innerText = `${teacher.name} (${teacher.subject})`;
-            selectElement.appendChild(option);
-        });
-    }
-}
+            if(!title || !teacherName || !url) {
+                alert('يرجى ملء كافة بيانات المحاضرة المكتوبة واختيار اسم المعلم!');
+                return;
+            }
 
-// تعديل واصلاح دالة إضافة المحاضرة (ربط الفيديو بمدرس معين)
-function addNewLectureToTeacher() {
-    const selectElement = document.getElementById('lectureTeacherSelect');
-    const titleInput = document.getElementById('lectureTitle') || document.querySelector('[placeholder="عنوان المحاضرة/الدرس"]');
-    const urlInput = document.getElementById('lectureUrl') || document.querySelector('[placeholder="رابط الفيديو (YouTube / ArabX / AlbaPlayer)"]');
+            const newVideo = { id: Date.now(), title, url, teacherName, stream };
+            platformData.videos.push(newVideo);
+            pushDataToGitHub();
 
-    if (!selectElement || !titleInput || !urlInput) {
-        alert("تنبيه: حقول إضافة المحاضرة غير مكتملة في الواجهة الحالية!");
-        return;
-    }
-
-    const teacherIndex = selectElement.value;
-    const lectureTitle = titleInput.value.trim();
-    const lectureUrl = urlInput.value.trim();
-
-    if (teacherIndex === "" || !lectureTitle || !lectureUrl) {
-        alert("برجاء اختيار المدرس، وكتابة عنوان المحاضرة ورابط الفيديو بشكل صحيح! ⚠️");
-        return;
-    }
-
-    // التأكد من هيكلة المحاضرات لدى المدرس المختار
-    const targetTeacher = platformData.teachers[teacherIndex];
-    if (!targetTeacher.lectures) {
-        targetTeacher.lectures = [];
-    }
-
-    // إضافة المحاضرة الجديدة لهيكل المدرس المختار
-    targetTeacher.lectures.push({
-        title: lectureTitle,
-        url: lectureUrl
-    });
-
-    alert(`تم ربط إضافة محاضرة "${lectureTitle}" بنجاح للمدرس: ${targetTeacher.name} ✅`);
-    
-    // تنظيف الحقول بعد الإضافة
-    titleInput.value = '';
-    urlInput.value = '';
-    
-    // إعادة بناء القوائم وحفظ التعديلات فوراً على جيت هاب
-    if (typeof renderAllLists === 'function') renderAllLists();
-    if (typeof saveAllToGitHub === 'function') saveAllToGitHub();
-}
-
-// تعديل واصلاح دالة إضافة وحفظ الطلاب في القائمة
-function addNewStudentSecurely() {
-    const nameInput = document.getElementById('studentName') || document.getElementById('admStudentPhone'); // حقل الاسم أو رقم الهاتف المتوفر
-    const keyDisplay = document.getElementById('generatedKeyDisplay');
-
-    if (!nameInput) {
-        alert("لم يتم العثور على حقول إدخال بيانات الطالب!");
-        return;
-    }
-
-    const studentIdentifier = nameInput.value.trim();
-    
-    // توليد كود التفعيل الآمن بناءً على دالتك الأصلية
-    if (typeof generateSecureStudentKey === 'function') {
-        generateSecureStudentKey();
-    }
-    
-    const generatedKey = keyDisplay ? keyDisplay.innerText.trim() : "";
-
-    if (!studentIdentifier || !generatedKey) {
-        alert("برجاء كتابة بيانات الطالب وتوليد كود التفعيل أولاً! ⚠️");
-        return;
-    }
-
-    // التأكد من وجود مصفوفة للطلاب داخل بنية platformData لعدم حدوث خطأ
-    if (!platformData.students) {
-        platformData.students = [];
-    }
-
-    // فحص عدم تكرار الكود
-    const isExist = platformData.students.some(st => st.key === generatedKey);
-    if (isExist) {
-        alert("هذا الطالب أو الكود مضاف بالفعل مسبقاً!");
-        return;
-    }
-
-    // حفظ الطالب رسمياً في المصفوفة
-    platformData.students.push({
-        name: studentIdentifier,
-        key: generatedKey,
-        date: new Date().toLocaleDateString('ar-EG')
-    });
-
-    // تحديث قائمة وعرض الطلاب على الشاشة فوراً
-    if (typeof renderAllLists === 'function') {
-        renderAllLists();
-    } else {
-        // إذا كانت الدالة الأصلية تبني الطلاب بشكل منفصل، نقوم بتحديث حاوية الطلاب يدوياً
-        const studentContainer = document.getElementById('studentsListContainer') || document.getElementById('students-list');
-        if (studentContainer) {
-            const row = document.createElement('div');
-            row.className = 'list-item';
-            row.innerHTML = `<span>${studentIdentifier}</span> - <strong style="color:var(--primary)">${generatedKey}</strong>`;
-            studentContainer.appendChild(row);
+            document.getElementById('admLecTitle').value = '';
+            document.getElementById('admLecUrl').value = '';
+            document.getElementById('admLecStream').value = '';
         }
-    }
 
-    // مزامنة ورفع ملف الجيت هاب تلقائياً لكي لا تضيع البيانات عند تحديث الصفحة
-    if (typeof saveAllToGitHub === 'function') {
-        saveAllToGitHub();
-    }
-}
+        // توليد أو تفعيل أكواد الطلاب داخل allowed_keys
+        function addOrGenerateStudentKey() {
+            const phone = document.getElementById('admStudentPhone').value.trim();
+            let code = document.getElementById('admStudentCode').value.trim();
 
-// ربط تشغيل وتحديث القوائم المنسدلة تلقائياً بمجرد فتح لوحة التحكم وعرض المراجع
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        updateTeachersDropdown();
-        
-        // ربط أزرار الإضافة الحالية بالدوال المصلحة الجديدة لمنع التضارب
-        const addStudentBtn = document.querySelector('.btn-generate') || document.querySelector('button[onclick*="Student"]');
-        if(addStudentBtn) {
-            addStudentBtn.setAttribute('onclick', 'addNewStudentSecurely()');
+            if(!phone) {
+                alert('يرجى كتابة رقم هاتف الطالب أولاً!');
+                return;
+            }
+
+            if(!code) {
+                code = Math.floor(100000 + Math.random() * 900000).toString();
+            }
+
+            platformData.allowed_keys[phone] = code;
+            pushDataToGitHub();
+
+            document.getElementById('generationResultBox').style.display = 'block';
+            document.getElementById('generatedKeyDisplay').innerText = code;
+            
+            document.getElementById('admStudentPhone').value = '';
+            document.getElementById('admStudentCode').value = '';
         }
-        
-        const addLectureBtn = document.querySelector('button[onclick*="Lecture"]') || document.querySelector('button[onclick*="Video"]');
-        if(addLectureBtn) {
-            addLectureBtn.setAttribute('onclick', 'addNewLectureToTeacher()');
-        }
-    }, 1000); // تأخير ثانية لضمان تحميل البيانات السحابية أولاً
-});
 
-// إعادة تشغيل دالة بناء الدروب داون عند إضافة مدرس جديد لكي يظهر فوراً في خيارات ربط المحاضرات
-const originalRenderAllLists = typeof renderAllLists === 'function' ? renderAllLists : null;
-renderAllLists = function() {
-    if(originalRenderAllLists) originalRenderAllLists();
-    updateTeachersDropdown();
-};
+        // عمليات الحذف السريعة
+        function deleteTeacher(id) {
+            if(confirm('هل أنت متأكد من حذف هذا المعلم نهائياً؟')) {
+                platformData.teachers = platformData.teachers.filter(t => t.id !== id);
+                pushDataToGitHub();
+            }
+        }
+
+        function deleteVideo(id) {
+            if(confirm('هل تريد حذف هذه المحاضرة نهائياً من السيرفر؟')) {
+                platformData.videos = platformData.videos.filter(v => v.id !== id);
+                pushDataToGitHub();
+            }
+        }
+
+        function deleteKey(phone) {
+            if(confirm(`هل أنت متأكد من إلغاء تفعيل هذا الهاتف [${phone}] وحظر دخوله؟`)) {
+                delete platformData.allowed_keys[phone];
+                pushDataToGitHub();
+            }
+        }
     </script>
 </body>
 </html>
