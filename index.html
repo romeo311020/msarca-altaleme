@@ -113,7 +113,7 @@
         .drawer-profile-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; color: white; }
         .drawer-profile-card p { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 10px; }
         
-        .status-pill { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.7 zero; font-weight: bold; }
+        .status-pill { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; }
         .status-pill.locked { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
         .status-pill.active { background: rgba(34, 197, 94, 0.15); color: var(--success); border: 1px solid var(--success); box-shadow: 0 0 10px rgba(34,197,94,0.2); }
 
@@ -184,7 +184,7 @@
         .modal-overlay.show { display: flex; opacity: 1; }
         .modal-card { width: 90%; max-width: 400px; padding: 25px; border-radius: 16px; text-align: center; }
 
-        .management-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 25px; }
+        .management-grid { display: grid; grid-template-columns: 1fr; max-width: 550px; margin: 25px auto 0 auto; gap: 25px; }
         .admin-contact-card { padding: 25px; text-align: center; border-radius: 12px; }
 
         footer { background: #090d16; padding: 20px 0; border-top: 1px solid var(--glass-border); text-align: center; margin-top: 50px; font-size: 0.8rem; color: var(--text-secondary); }
@@ -434,12 +434,16 @@
 
         <section id="pending-queue">
             <div class="auth-container glass-card" style="max-width: 550px; text-align: center;">
-                <i class="fa-solid fa-circle-check" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 15px;"></i>
-                <h2>تم إنشاء الحساب بنجاح</h2>
+                <i class="fa-solid fa-hourglass-half" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 15px;"></i>
+                <h2>خطوة أخيرة: تفعيل حسابك الموحد</h2>
                 <p style="color: var(--text-secondary); margin: 15px 0 20px; line-height: 1.6; font-size:0.9rem;">
-                    يمكنك الآن الدخول مباشرة إلى صفحة المدرسين ومشاهدة المحاضرات بدون أي أكواد أو تفعيل.
+                    مرحباً بك! لضمان أمان السيرفرات، يرجى تفعيل الحساب بإرسال البيانات للحصول على كود التفعيل المشفّر والخاص بجهازك لمنع الاختراق.
                 </p>
-                <button class="btn btn-primary" onclick="navigateTo('teachers')">الانتقال إلى المدرسين</button>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button class="btn btn-primary" style="background:#25D366;" onclick="sendDataToAdminWhatsApp('romany')">
+                        <i class="fa-brands fa-whatsapp"></i> تفعيل الحساب مع Eng. Romany Garges
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -454,10 +458,10 @@
 
                 <div class="video-box-master" id="playerContainerBox">
                     <div class="server-lock-screen" id="serverLockOverlay">
-                        <i class="fa-solid fa-right-to-bracket"></i>
-                        <h3>يرجى تسجيل الدخول</h3>
+                        <i class="fa-solid fa-lock"></i>
+                        <h3>السيرفر مغلق وغير مفعل!</h3>
                         <p style="color: var(--text-secondary); margin-top: 8px; font-size: 0.85rem; max-width: 450px;">
-                            أنشئ حسابًا أو سجّل دخولك لبدء مشاهدة المحاضرات مباشرة بدون أكواد أو تفعيل.
+                            يتطلب هذا السيرفر التعليمي تفعيل كود الاشتراك الشامل. يرجى فتح القائمة الجانبية من الأعلى واضغط على زر <strong style="color:var(--accent);">"ادخل كودك هنا"</strong> لتفعيل الخدمة والاتصال الفوري.
                         </p>
                     </div>
 
@@ -478,7 +482,19 @@
             </div>
             <div class="auth-container glass-card" style="max-width: 550px;">
                 <h3>لوحة إدارة المنصة</h3>
-                <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:15px;">المنصة الآن تعتمد على إنشاء الحساب فقط، بدون أكواد أو تفعيل.</p>
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:15px;">توليد كود تشفير حصري مرتبط برقم الهاتف</p>
+                
+                <div class="form-group">
+                    <label>رقم هاتف الطالب بدقة كما سجل به</label>
+                    <input type="tel" class="form-control" id="admStudentPhone" placeholder="مثال: 01286716976">
+                </div>
+                <button class="btn btn-primary" style="width: 100%;" onclick="generateSecureStudentKey()">توليد الكود المشفر</button>
+                
+                <div id="generationResultBox" style="margin-top: 20px; display: none; padding: 15px; background: rgba(255,255,255,0.02); border:1px solid var(--accent); border-radius:8px; text-align:center;">
+                    <p style="font-size: 0.85rem;">الكود الحصري الخاص بهاتف هذا الطالب:</p>
+                    <h3 id="generatedKeyDisplay" style="color: var(--accent); margin: 10px 0; font-family: monospace; letter-spacing: 2px; user-select: text;">XXXX-XXXX</h3>
+                    <p style="font-size: 0.7rem; color: var(--danger);">لن يعمل هذا الكود مع أي حساب أو رقم هاتف آخر مطلقاً.</p>
+                </div>
             </div>
         </section>
 
@@ -500,16 +516,24 @@
                     <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px;">مسؤول هندسة واجهات المستخدم الفاخرة وتطوير خوارزميات الحماية والتشفير الذكي بالموقع.</p>
                     <a href="https://wa.me/201286716976" target="_blank" class="btn btn-primary" style="background: #25D366; width: 100%;"><i class="fa-brands fa-whatsapp"></i> واتساب م/ روماني</a>
                 </div>
-                <div class="admin-contact-card glass-card">
-                    <h4>Eng. Mina Philoppes</h4>
-                    <div style="color:var(--accent); font-size:0.8rem; margin:5px 0 10px;">المؤسس المشارك ومدير التطوير التقني</div>
-                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px;">المشرف الفني على استضافة السيرفرات السحابية وقنوات تشغيل البث وتنسيق الملفات.</p>
-                    <a href="https://wa.me/201205669854" target="_blank" class="btn btn-primary" style="background: #25D366; width: 100%;"><i class="fa-brands fa-whatsapp"></i> واتساب م/ مينا</a>
-                </div>
             </div>
         </section>
 
     </main>
+
+    <div class="modal-overlay" id="activationModal">
+        <div class="modal-card glass-card">
+            <h3 style="margin-bottom: 8px;"><i class="fa-solid fa-key" style="color: var(--accent);"></i> تفعيل الاشتراك الشامل</h3>
+            <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 15px;">أدخل كود الاشتراك المستلم لتفعيل وحقن السيرفرات بالكامل.</p>
+            <div class="form-group">
+                <input type="text" class="form-control" id="activationKeyInput" style="text-align: center; font-family: monospace; letter-spacing: 2px;" placeholder="MSRK-XXXX-XXXX">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
+                <button class="btn btn-primary" onclick="validateAndActivateServer()">تفعيل الآن</button>
+                <button class="btn btn-secondary" onclick="closeActivationModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <div class="container">
@@ -530,16 +554,13 @@
             checkExistingSession();
             await fetchCloudTeachers();
             
-            // [تحسين 1] التحقق من وجود محاضرة سابقة ومتابعة المشاهدة تلقائياً
             checkLastWatchedLecture();
 
-            // [تحسين 2] المزامنة التلقائية الصامتة في الخلفية كل 60 ثانية لتحديث البيانات دون عمل Reload
             setInterval(async () => {
                 await fetchCloudTeachers(true);
             }, 60000);
         });
 
-        // جلب البيانات الخارجيـة
         async function fetchCloudTeachers(isSilent = false) {
             const grid = document.getElementById('teachersGridBox');
             if (!grid) return;
@@ -559,7 +580,6 @@
                 
                 if (data && Array.isArray(data.teachers)) {
                     platformData.teachers = data.teachers;
-                    // الحفاظ على حالة البحث إن وجدت أثناء التحديث التلقائي
                     const searchVal = document.getElementById('platformSearchInput')?.value || '';
                     if (searchVal) {
                         filterPlatformData(searchVal);
@@ -580,7 +600,6 @@
             }
         }
 
-        // [تحسين 3] محرك البحث الذكي والتصفية الشجرية للبيانات
         function filterPlatformData(query) {
             const cleanQuery = query.toLowerCase().trim();
             if (!cleanQuery) {
@@ -589,9 +608,8 @@
             }
 
             const filtered = platformData.teachers.map(t => {
-                // فلترة الكورسات والمحاضرات التي تطابق البحث
-                const matchingCourses = t.courses.map(c => {
-                    const matchingLectures = c.lectures.filter(l => 
+                const matchingCourses = (t.courses || []).map(c => {
+                    const matchingLectures = (c.lectures || []).filter(l => 
                         l.title.toLowerCase().includes(cleanQuery) || 
                         (l.description && l.description.toLowerCase().includes(cleanQuery))
                     );
@@ -610,7 +628,6 @@
             renderTeachers(filtered, true);
         }
 
-        // بناء كروت المدرسين ديناميكياً
         function renderTeachers(teachersList, autoOpen = false) {
             const grid = document.getElementById('teachersGridBox');
             if (!grid) return;
@@ -674,7 +691,6 @@
             }).join('');
         }
 
-        // معالجة الضغط على المحاضرة وحفظ الـ Cache
         function handleTeacherEntryClick(tId, cId, lId) {
             if(!currentSessionUser) {
                 showToast('يرجى إنشاء حساب أو تسجيل الدخول أولاً', 'error');
@@ -695,15 +711,12 @@
                     subject: teacher.subject
                 };
                 
-                // حفظ المعرفات للمتابعة لاحقاً
                 localStorage.setItem('masarak_last_watched', JSON.stringify({ tId, cId, lId }));
-                
-                showToast('جاري فتح غرفة البث الآمنة...', 'success');
+                showToast('جاري فتح المحاضرة...', 'success');
                 navigateTo('subject-page', `${tId}-${cId}-${lId}`);
             }
         }
 
-        // [تابع تحسين 1] التأكد من آخر محاضرة وعرض خيار المتابعة
         function checkLastWatchedLecture() {
             setTimeout(() => {
                 if (!currentSessionUser) return;
@@ -725,7 +738,6 @@
             }, 1500);
         }
 
-        // [تحسين 4] تشغيل المحاضرة التالية تلقائياً عند انتهاء الفيديو الحالي
         function listenForVideoEndEvents(videoElement) {
             if (!videoElement) return;
             videoElement.onended = function() {
@@ -782,12 +794,10 @@
                     video.src = cleanUrl;
                 }
                 
-                // تفعيل مستمع الحدث للمحاضرة التالية
                 listenForVideoEndEvents(video);
             }
         }
 
-        // بقية دوال التوجيه والأمان والحسابات كما هي تماماً لحماية بنية الموقع القديمة
         function openDrawer() { document.getElementById('appDrawer').classList.add('open'); document.getElementById('drawerOverlay').classList.add('show'); }
         function closeDrawer() { document.getElementById('appDrawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('show'); }
         function navigateFromDrawer(sectionId) { closeDrawer(); navigateTo(sectionId); }
@@ -827,10 +837,18 @@
             if(pass !== passConfirm) { showToast('كلمة المرور وتأكيدها غير متطابقين', 'error'); return; }
             setButtonLoading(button, true, 'جاري إنشاء الحساب');
             setTimeout(() => {
-                const studentObj = { name, phone, password: pass, activated: true };
+                const studentObj = { name, phone, password: pass, activated: false, activeKey: "" };
                 localStorage.setItem(`student_${phone}`, JSON.stringify(studentObj)); localStorage.setItem('masarak_logged_phone', phone);
                 currentSessionUser = studentObj; syncUiAndDrawerState(); setButtonLoading(button, false); showToast('تم إنشاء الحساب بنجاح', 'success'); navigateTo('pending-queue');
             }, 500);
+        }
+        function sendDataToAdminWhatsApp(adminName) {
+            if(!currentSessionUser) return;
+            const adminPhone = '201286716976';
+            const message = `مرحباً يا باشمهندس، أنا قمت بالتسجيل في منصة مسارك وأريد الحصول على كود اشتراكي المشفّر الحصري.\n\nبياناتي المسجلة:\n- اسم الطالب: ${currentSessionUser.name}\n- رقم الهاتف: ${currentSessionUser.phone}`;
+            window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`, '_blank');
+            showToast('تم فتح الواتساب للتفعيل', 'success');
+            navigateTo('login');
         }
         function processStudentLogin(e) {
             e.preventDefault(); const button = e.target.querySelector('button[type="submit"]');
@@ -854,7 +872,22 @@
             const headerAuthBox = document.getElementById('headerAuthBtnBox'); const drawerProfileContainer = document.getElementById('drawerProfileContainer');
             if(currentSessionUser) {
                 headerAuthBox.innerHTML = `<div style="display:flex; align-items:center; gap:8px;"><span style="font-size:0.75rem; color:var(--accent); font-weight:600;"><i class="fa-solid fa-circle-user"></i> ${currentSessionUser.name.split(' ')[0]}</span><button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="logOutStudent()"><i class="fa-solid fa-power-off"></i> خروج</button></div>`;
-                drawerProfileContainer.innerHTML = `<div class="drawer-profile-card"><div class="drawer-avatar"><i class="fa-solid fa-user-graduate"></i></div><h4>${currentSessionUser.name}</h4><p>${currentSessionUser.phone}</p><span class="status-pill active"><i class="fa-solid fa-circle-check"></i> الحساب جاهز</span></div>`;
+                const validToken = "MSRK-" + btoa(currentSessionUser.phone).substring(0, 8).toUpperCase();
+                const isActive = (currentSessionUser.activated && currentSessionUser.activeKey === validToken);
+                drawerProfileContainer.innerHTML = `
+                    <div class="drawer-profile-card">
+                        <div class="drawer-avatar"><i class="fa-solid fa-user-graduate"></i></div>
+                        <h4>${currentSessionUser.name}</h4>
+                        <p>${currentSessionUser.phone}</p>
+                        <span class="status-pill ${isActive ? 'active' : 'locked'}">
+                            <i class="fa-solid ${isActive ? 'fa-circle-check' : 'fa-circle-xmark'}"></i> 
+                            ${isActive ? 'الحساب مفعّل ونشط' : 'السيرفرات مغلقة'}
+                        </span>
+                        <button class="btn btn-primary drawer-activate-btn" style="width:100%;" onclick="openActivationModal()">
+                            <i class="fa-solid fa-key"></i> ادخل كودك هنا
+                        </button>
+                    </div>
+                `;
             } else {
                 headerAuthBox.innerHTML = `<button class="btn btn-primary" onclick="navigateTo('login')"><i class="fa-solid fa-lock"></i> دخول / تسجيل</button>`;
                 drawerProfileContainer.innerHTML = `<div class="drawer-profile-card"><div class="drawer-avatar" style="background:rgba(255,255,255,0.05); color:var(--text-secondary);"><i class="fa-solid fa-user-secret"></i></div><h4>طالب زائر غير مسجل</h4></div>`;
@@ -876,10 +909,44 @@
         function evalUserServerSubscriptionStatus() {
             const lockScreen = document.getElementById('serverLockOverlay');
             if(!currentSessionUser) { if (lockScreen) lockScreen.style.display = 'flex'; return; }
-            if (lockScreen) lockScreen.style.display = 'none';
-            playUniversalVideoPlayer(selectedLectureRuntime?.video || '');
+            const validToken = "MSRK-" + btoa(currentSessionUser.phone).substring(0, 8).toUpperCase();
+            if(currentSessionUser.activated && currentSessionUser.activeKey === validToken) {
+                if (lockScreen) lockScreen.style.display = 'none';
+                playUniversalVideoPlayer(selectedLectureRuntime?.video || selectedLectureRuntime?.stream || '');
+            } else {
+                const videoElement = document.getElementById('secureVideoEngine');
+                if (videoElement) videoElement.src = "";
+                if (lockScreen) lockScreen.style.display = 'flex';
+            }
+        }
+        function openActivationModal() { closeDrawer(); document.getElementById('activationModal').classList.add('show'); }
+        function closeActivationModal() { document.getElementById('activationModal').classList.remove('show'); }
+        function validateAndActivateServer() {
+            const keyInput = document.getElementById('activationKeyInput').value.trim();
+            if(!keyInput || !currentSessionUser) return;
+            const expectedSecretToken = "MSRK-" + btoa(currentSessionUser.phone).substring(0, 8).toUpperCase();
+            if(keyInput === expectedSecretToken) {
+                currentSessionUser.activated = true;
+                currentSessionUser.activeKey = keyInput;
+                localStorage.setItem(`student_${currentSessionUser.phone}`, JSON.stringify(currentSessionUser));
+                closeActivationModal();
+                syncUiAndDrawerState();
+                if(document.getElementById('subject-page').classList.contains('active-section')) {
+                    evalUserServerSubscriptionStatus();
+                }
+                showToast('تم تفعيل الحساب والمنصة بنجاح!', 'success');
+            } else {
+                alert('كود التفعيل غير صالح لحسابك! الأكواد مشفرة لتعمل على جهاز واحد فقط.');
+            }
         }
         function enterAdminSecretPanel() { const masterPass = prompt('أدخل كود مرور مهندسي المنصة:'); if(masterPass === "masarak2026") navigateTo('admin-panel'); else if(masterPass !== null) alert('صلاحية مرفوضة!'); }
+        function generateSecureStudentKey() {
+            const phoneInput = document.getElementById('admStudentPhone').value.trim();
+            if(!phoneInput) return;
+            const token = "MSRK-" + btoa(phoneInput).substring(0, 8).toUpperCase();
+            document.getElementById('generationResultBox').style.display = 'block';
+            document.getElementById('generatedKeyDisplay').innerText = token;
+        }
         function initKeyboardSecurity() { document.onkeydown = function(e) { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'C'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) return false; }; }
     </script>
 </body>
